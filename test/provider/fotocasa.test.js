@@ -9,7 +9,7 @@ import { providerConfig } from '../utils.js';
 
 const SEARCH_URL = providerConfig.fotocasa.url;
 const ENGLISH_SEARCH_URL =
-  'https://www.fotocasa.es/en/buy/homes/valencia-capital/all-zones/l?maxPrice=800000&minPrice=100000&minSurface=60&propertySubtypeIds=2%253B6%253B7';
+  'https://www.fotocasa.es/en-us/buy/homes/valencia-capital/all-zones/l?maxPrice=800000&minPrice=100000&minSurface=60&propertySubTypeIds=2%253B6%253B7&sortType=publicationDate';
 
 function jsonResponse(payload) {
   return {
@@ -43,6 +43,15 @@ function placeholder(propertyId) {
       photoLarge: `https://www.fotocasa.es/media/${propertyId}.jpg`,
       latitude: 40.4,
       longitude: -3.7,
+    },
+  };
+}
+
+function adPlaceholder() {
+  return {
+    type: 'SAITAMA',
+    advertisingSaitamaDto: {
+      slot: 'list-inline',
     },
   };
 }
@@ -86,7 +95,7 @@ describe('#fotocasa testsuite()', () => {
 
         if (page === 1) {
           return jsonResponse({
-            placeholders: [placeholder(1), placeholder(2)],
+            placeholders: [placeholder(1), placeholder(2), adPlaceholder()],
             info: { count: '5' },
           });
         }
@@ -153,6 +162,7 @@ describe('#fotocasa testsuite()', () => {
     expect(v3Requests[0].searchParams.get('text')).to.equal('valencia capital');
     expect(v3Requests[0].searchParams.get('page')).to.equal('1');
     expect(v3Requests[0].searchParams.get('pageSize')).to.equal('36');
+    expect(v3Requests[0].searchParams.get('sort')).to.equal('0');
     expect(v3Requests[0].searchParams.get('priceFrom')).to.equal('100000');
     expect(v3Requests[0].searchParams.get('priceTo')).to.equal('800000');
     expect(v3Requests[0].searchParams.get('surfaceFrom')).to.equal('60');
