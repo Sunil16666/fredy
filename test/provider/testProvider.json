@@ -56,5 +56,10 @@
     "url": "https://www.idealista.com/alquiler-viviendas/madrid-madrid/",
     "enabled": true,
     "id": "idealista"
+  },
+  "fotocasa": {
+    "url": "https://www.fotocasa.es/es/alquiler/viviendas/madrid-capital/todas-las-zonas/l",
+    "enabled": true,
+    "id": "fotocasa"
   }
 }
