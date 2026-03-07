@@ -8,6 +8,8 @@ import * as provider from '../../lib/provider/fotocasa.js';
 import { providerConfig } from '../utils.js';
 
 const SEARCH_URL = providerConfig.fotocasa.url;
+const ENGLISH_SEARCH_URL =
+  'https://www.fotocasa.es/en/buy/homes/valencia-capital/all-zones/l?maxPrice=800000&minPrice=100000&minSurface=60&propertySubtypeIds=2%253B6%253B7';
 
 function jsonResponse(payload) {
   return {
@@ -142,22 +144,27 @@ describe('#fotocasa testsuite()', () => {
       throw new Error(`Unexpected endpoint in test: ${requestUrl.pathname}`);
     };
 
-    const listings = await provider.config.getListings(SEARCH_URL);
+    const listings = await provider.config.getListings(ENGLISH_SEARCH_URL);
 
     expect(listings).to.be.an('array').with.length(1);
     expect(v3Requests).to.have.length(1);
-    expect(v3Requests[0].searchParams.get('transactionType')).to.equal('RENT');
+    expect(v3Requests[0].searchParams.get('transactionType')).to.equal('SALE');
     expect(v3Requests[0].searchParams.get('propertyType')).to.equal('HOME');
-    expect(v3Requests[0].searchParams.get('text')).to.equal('madrid capital');
+    expect(v3Requests[0].searchParams.get('text')).to.equal('valencia capital');
     expect(v3Requests[0].searchParams.get('page')).to.equal('1');
     expect(v3Requests[0].searchParams.get('pageSize')).to.equal('36');
+    expect(v3Requests[0].searchParams.get('priceFrom')).to.equal('100000');
+    expect(v3Requests[0].searchParams.get('priceTo')).to.equal('800000');
+    expect(v3Requests[0].searchParams.get('surfaceFrom')).to.equal('60');
+    expect(v3Requests[0].searchParams.get('propertySubTypeList')).to.equal('2;6;7');
   });
 
-  it('retries v3 search on search.gw when apps.gw is blocked', async () => {
-    const v3Hosts = [];
+  it('uses apps.gw only by default', async () => {
+    const requestedHosts = [];
 
     global.fetch = async (url) => {
       const requestUrl = new URL(url);
+      requestedHosts.push(requestUrl.host);
 
       if (requestUrl.pathname === '/translatesemantic/search') {
         return jsonResponse({
@@ -172,16 +179,10 @@ describe('#fotocasa testsuite()', () => {
       }
 
       if (requestUrl.pathname === '/v3/placeholders/search') {
-        v3Hosts.push(requestUrl.host);
-        if (requestUrl.host === 'apps.gw.fotocasa.es') {
-          return errorResponse(403, 'Pardon Our Interruption');
-        }
-        if (requestUrl.host === 'search.gw.fotocasa.es') {
-          return jsonResponse({
-            placeholders: [placeholder(77)],
-            info: { count: '1' },
-          });
-        }
+        return jsonResponse({
+          placeholders: [placeholder(77)],
+          info: { count: '1' },
+        });
       }
 
       throw new Error(`Unexpected endpoint in test: ${requestUrl.pathname}`);
@@ -189,7 +190,7 @@ describe('#fotocasa testsuite()', () => {
 
     const listings = await provider.config.getListings(SEARCH_URL);
 
-    expect(v3Hosts).to.deep.equal(['apps.gw.fotocasa.es', 'search.gw.fotocasa.es']);
+    expect(requestedHosts.every((host) => host === 'apps.gw.fotocasa.es')).to.equal(true);
     expect(listings).to.be.an('array').with.length(1);
     expect(listings[0].id).to.equal('77');
   });
