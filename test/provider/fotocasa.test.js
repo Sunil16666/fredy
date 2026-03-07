@@ -1,0 +1,196 @@
+/*
+ * Copyright (c) 2026 by Christian Kellner.
+ * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
+ */
+
+import { expect } from 'chai';
+import * as provider from '../../lib/provider/fotocasa.js';
+import { providerConfig } from '../utils.js';
+
+const SEARCH_URL = providerConfig.fotocasa.url;
+
+function jsonResponse(payload) {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => payload,
+    text: async () => JSON.stringify(payload),
+  };
+}
+
+function errorResponse(status, text) {
+  return {
+    ok: false,
+    status,
+    json: async () => ({ reason: text }),
+    text: async () => text,
+  };
+}
+
+function placeholder(propertyId) {
+  return {
+    type: 'PROPERTY',
+    property: {
+      propertyId,
+      price: 1000 + propertyId,
+      surface: 70,
+      title: `Listing ${propertyId}`,
+      comments: `Description ${propertyId}`,
+      addressLine: `Address ${propertyId}`,
+      urlMarketplace: `https://www.fotocasa.es/es/alquiler/vivienda/test-${propertyId}`,
+      photoLarge: `https://www.fotocasa.es/media/${propertyId}.jpg`,
+      latitude: 40.4,
+      longitude: -3.7,
+    },
+  };
+}
+
+describe('#fotocasa testsuite()', () => {
+  let originalFetch;
+
+  beforeEach(() => {
+    originalFetch = global.fetch;
+    provider.init(providerConfig.fotocasa, [], []);
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it('fetches all pages and returns aggregated listings', async () => {
+    const requestedPages = [];
+
+    global.fetch = async (url) => {
+      const requestUrl = new URL(url);
+
+      if (requestUrl.pathname === '/translatesemantic/search') {
+        return jsonResponse({
+          urlParametersDto: {
+            transactionType: 'RENT',
+            propertyType: 'HOME',
+            text: 'madrid capital',
+            clientId: '0',
+            page: '1',
+            pageSize: '2',
+            sort: '0',
+            advertisingSaitamaClientVersion: '7',
+          },
+        });
+      }
+
+      if (requestUrl.pathname === '/v3/placeholders/search') {
+        const page = Number.parseInt(requestUrl.searchParams.get('page') ?? '0', 10);
+        requestedPages.push(page);
+
+        if (page === 1) {
+          return jsonResponse({
+            placeholders: [placeholder(1), placeholder(2)],
+            info: { count: '5' },
+          });
+        }
+        if (page === 2) {
+          return jsonResponse({
+            placeholders: [placeholder(3), placeholder(4)],
+            info: { count: '5' },
+          });
+        }
+        if (page === 3) {
+          return jsonResponse({
+            placeholders: [placeholder(5)],
+            info: { count: '5' },
+          });
+        }
+        return jsonResponse({
+          placeholders: [],
+          info: { count: '5' },
+        });
+      }
+
+      throw new Error(`Unexpected endpoint in test: ${requestUrl.pathname}`);
+    };
+
+    const listings = await provider.config.getListings(SEARCH_URL);
+
+    expect(requestedPages).to.deep.equal([1, 2, 3]);
+    expect(listings).to.be.an('array').with.length(5);
+    expect(listings.map((item) => item.id)).to.deep.equal(['1', '2', '3', '4', '5']);
+    listings.forEach((listing) => {
+      expect(listing.link).to.be.a('string').and.include('https://www.fotocasa.es');
+      expect(listing.price).to.be.a('string').and.not.empty;
+      expect(listing.title).to.be.a('string').and.not.empty;
+    });
+  });
+
+  it('falls back to parsed query when semantic translation is blocked', async () => {
+    const v3Requests = [];
+
+    global.fetch = async (url) => {
+      const requestUrl = new URL(url);
+
+      if (requestUrl.pathname === '/translatesemantic/search') {
+        return errorResponse(403, 'blocked');
+      }
+
+      if (requestUrl.pathname === '/v3/placeholders/search') {
+        v3Requests.push(requestUrl);
+        return jsonResponse({
+          placeholders: [placeholder(42)],
+          info: { count: '1' },
+        });
+      }
+
+      throw new Error(`Unexpected endpoint in test: ${requestUrl.pathname}`);
+    };
+
+    const listings = await provider.config.getListings(SEARCH_URL);
+
+    expect(listings).to.be.an('array').with.length(1);
+    expect(v3Requests).to.have.length(1);
+    expect(v3Requests[0].searchParams.get('transactionType')).to.equal('RENT');
+    expect(v3Requests[0].searchParams.get('propertyType')).to.equal('HOME');
+    expect(v3Requests[0].searchParams.get('text')).to.equal('madrid capital');
+    expect(v3Requests[0].searchParams.get('page')).to.equal('1');
+    expect(v3Requests[0].searchParams.get('pageSize')).to.equal('36');
+  });
+
+  it('retries v3 search on search.gw when apps.gw is blocked', async () => {
+    const v3Hosts = [];
+
+    global.fetch = async (url) => {
+      const requestUrl = new URL(url);
+
+      if (requestUrl.pathname === '/translatesemantic/search') {
+        return jsonResponse({
+          urlParametersDto: {
+            transactionType: 'RENT',
+            propertyType: 'HOME',
+            text: 'madrid capital',
+            page: '1',
+            pageSize: '36',
+          },
+        });
+      }
+
+      if (requestUrl.pathname === '/v3/placeholders/search') {
+        v3Hosts.push(requestUrl.host);
+        if (requestUrl.host === 'apps.gw.fotocasa.es') {
+          return errorResponse(403, 'Pardon Our Interruption');
+        }
+        if (requestUrl.host === 'search.gw.fotocasa.es') {
+          return jsonResponse({
+            placeholders: [placeholder(77)],
+            info: { count: '1' },
+          });
+        }
+      }
+
+      throw new Error(`Unexpected endpoint in test: ${requestUrl.pathname}`);
+    };
+
+    const listings = await provider.config.getListings(SEARCH_URL);
+
+    expect(v3Hosts).to.deep.equal(['apps.gw.fotocasa.es', 'search.gw.fotocasa.es']);
+    expect(listings).to.be.an('array').with.length(1);
+    expect(listings[0].id).to.equal('77');
+  });
+});
