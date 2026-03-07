@@ -220,6 +220,112 @@ https://www.fotocasa.es/es/alquiler/viviendas/madrid-capital/todas-las-zonas/l
 
 ---
 
+## Imperva Mobile Protect — X-D-Token
+
+### How the token is generated
+
+The app uses the **Imperva Mobile Protect SDK** (formerly Distil Networks), shipped as:
+
+- Java wrapper: `com.distil.protection.android.Protection` (decompiled from `classes3.dex`)
+- Native library: `libbf93.so` (1.2 MB, ARM64, heavily obfuscated)
+- Obfuscated Java glue: `app.tango.o.*` package
+
+Flow (`ProtectionModuleKt` → `FotocasaImpervaSdkWrapper` → `Protection`):
+
+1. The SDK is initialized with the challenge URL hardcoded in `ProtectionModuleKt`:
+
+   ```text
+   https://www.fotocasa.es/rSa9Vzy3KajA9f9m/v1/challenge
+   ```
+
+2. It runs a background `ProtectionService` in a **separate Android process** (IPC via `Messenger`/`Binder`).
+3. It collects device fingerprints:
+   - Network interfaces (display names, IP addresses, MTU) via `NetworkInterface`
+   - Sensor data (accelerometer / rotation vector) via `SensorManager`
+   - Process identity, biometrics flag
+4. The native library (`libbf93.so`) signs the fingerprint payload and submits it to the challenge URL.
+5. The server returns an **opaque token** that is sent as the `X-D-Token` request header on every protected API call.
+
+### URL patterns protected by Imperva
+
+From `ProtectionModuleKt.protectionModule$lambda$0$3()` (regex list):
+
+```text
+https://apps\.gw\.\.?.*fotocasa\.es/.*
+https://api\.\.?.*fotocasa\.es/messaging/cc_proxy/.*
+https://ptaformbuilder-classifiedads\.\.?.*spain\.advgo\.net/.*
+https://ptaphotouploader-classifiedads\.\.?.*spain\.advgo\.net/.*
+https://ptaadinsertion-classifiedads\.\.?.*spain\.advgo\.net/.*
+https://privacyandauth\.gw\.\.?.*fotocasa\.es/.*
+```
+
+Both `apps.gw.fotocasa.es` (used by fredy) and `privacyandauth.gw.fotocasa.es` are in this list, so **every API call requires a valid `X-D-Token`**.
+
+### Why it cannot be replicated in Node.js
+
+The token generation requires:
+
+- Android-specific APIs (`SensorManager`, `NetworkInterface` with hardware-level data)
+- The obfuscated native library `libbf93.so` (ARM64 only)
+- A registered Android device identity that the Imperva backend can validate
+
+There is no public specification for the challenge protocol; the native library is too obfuscated to reverse practically.
+
+### How to obtain a valid X-D-Token
+
+#### Option A — mitmproxy (simplest, no root required)
+
+1. Install the fotocasa Android app on a physical device or emulator.
+2. Configure [mitmproxy](https://mitmproxy.org/) as the device's HTTP proxy and install its CA certificate.
+3. Open the app and perform any property search.
+4. In mitmproxy, filter requests to `apps.gw.fotocasa.es` and copy the `X-D-Token` header value.
+5. Set it in fredy via `sourceConfig.xDToken` or the `FOTOCASA_X_D_TOKEN` environment variable.
+
+Note: the app uses certificate pinning for some endpoints, so you may need to disable it. On a non-rooted device, use an **Android 6–9 emulator** (AVD) which trusts user-installed CAs without pinning bypass.
+
+#### Option B — Frida hook (extracts tokens automatically, requires root/emulator)
+
+On a rooted device or Android emulator with Frida server running:
+
+```javascript
+// frida -U -n com.anuntis.fotocasa -l extract_token.js
+Java.perform(() => {
+  const Wrapper = Java.use('com.adevinta.fotocasa.data.imperva.FotocasaImpervaSdkWrapper');
+  Wrapper.getToken.implementation = function () {
+    const token = this.getToken();
+    console.log('[X-D-Token]', token);
+    return token;
+  };
+});
+```
+
+Run the script, trigger a search in the app, and the token prints to the Frida console.
+
+#### Option C — Emulator with mitmproxy (no physical device)
+
+Use Android Studio's AVD (API level 28 or lower) which accepts user-installed certificates without root:
+
+```bash
+# Start emulator with writable system image
+emulator -avd Pixel_4_API_28 -writable-system
+# Proxy all traffic through mitmproxy on port 8080
+adb shell settings put global http_proxy 192.168.1.x:8080
+```
+
+Install the fotocasa APK (`com.anuntis.fotocasa.apk` from the extracted XAPK), open it, and capture tokens via mitmproxy.
+
+### Token lifetime
+
+The token is session-scoped. Based on typical Imperva Mobile Protect deployments, tokens expire after **several minutes to a few hours**. The fredy provider accepts the token via:
+
+- `sourceConfig.xDToken` (job config)
+- `db/fotocasa-x-d-token.txt` (file, re-read each run)
+- `FOTOCASA_X_D_TOKEN` environment variable
+
+Using the file approach (`db/fotocasa-x-d-token.txt`) combined with a periodic Frida/mitmproxy extraction script is the most practical long-term solution.
+
+---
+
 ## Implementation Reference
 
 See [lib/provider/fotocasa.js](lib/provider/fotocasa.js) for the complete fredy provider implementation.

@@ -132,7 +132,7 @@ describe('#fotocasa testsuite()', () => {
     });
   });
 
-  it('falls back to parsed query when semantic translation is blocked', async () => {
+  it('fails fast when semantic URL translation is blocked (strict flow)', async () => {
     const v3Requests = [];
 
     global.fetch = async (url) => {
@@ -153,20 +153,16 @@ describe('#fotocasa testsuite()', () => {
       throw new Error(`Unexpected endpoint in test: ${requestUrl.pathname}`);
     };
 
-    const listings = await provider.config.getListings(ENGLISH_SEARCH_URL);
+    let thrown = null;
+    try {
+      await provider.config.getListings(ENGLISH_SEARCH_URL);
+    } catch (err) {
+      thrown = err;
+    }
 
-    expect(listings).to.be.an('array').with.length(1);
-    expect(v3Requests).to.have.length(1);
-    expect(v3Requests[0].searchParams.get('transactionType')).to.equal('SALE');
-    expect(v3Requests[0].searchParams.get('propertyType')).to.equal('HOME');
-    expect(v3Requests[0].searchParams.get('text')).to.equal('valencia capital');
-    expect(v3Requests[0].searchParams.get('page')).to.equal('1');
-    expect(v3Requests[0].searchParams.get('pageSize')).to.equal('36');
-    expect(v3Requests[0].searchParams.get('sort')).to.equal('0');
-    expect(v3Requests[0].searchParams.get('priceFrom')).to.equal('100000');
-    expect(v3Requests[0].searchParams.get('priceTo')).to.equal('800000');
-    expect(v3Requests[0].searchParams.get('surfaceFrom')).to.equal('60');
-    expect(v3Requests[0].searchParams.get('propertySubTypeList')).to.equal('2;6;7');
+    expect(thrown).to.be.instanceOf(Error);
+    expect(thrown.message).to.include('Fotocasa API error (403)');
+    expect(v3Requests).to.have.length(0);
   });
 
   it('uses apps.gw only by default', async () => {
@@ -203,5 +199,92 @@ describe('#fotocasa testsuite()', () => {
     expect(requestedHosts.every((host) => host === 'apps.gw.fotocasa.es')).to.equal(true);
     expect(listings).to.be.an('array').with.length(1);
     expect(listings[0].id).to.equal('77');
+  });
+
+  it('fails fast when v3 is blocked by an Imperva challenge page', async () => {
+    const v3Requests = [];
+
+    global.fetch = async (url) => {
+      const requestUrl = new URL(url);
+
+      if (requestUrl.pathname === '/translatesemantic/search') {
+        return jsonResponse({
+          urlParametersDto: {
+            transactionType: 'SALE',
+            propertyType: 'HOME',
+            text: 'valencia capital',
+            locations: '12345',
+            page: '1',
+            pageSize: '36',
+          },
+        });
+      }
+
+      if (requestUrl.pathname === '/v3/placeholders/search') {
+        v3Requests.push(requestUrl.toString());
+        return errorResponse(403, '<html><h1>Pardon Our Interruption</h1></html>');
+      }
+
+      throw new Error(`Unexpected endpoint in test: ${requestUrl.pathname}`);
+    };
+
+    let thrown = null;
+    try {
+      await provider.config.getListings(ENGLISH_SEARCH_URL);
+    } catch (err) {
+      thrown = err;
+    }
+
+    expect(thrown).to.be.instanceOf(Error);
+    expect(thrown.message).to.include('Imperva challenge detected');
+    expect(v3Requests).to.have.length(1);
+  });
+
+  it('sends configured X-D-Token and Cookie headers on mobile API calls', async () => {
+    provider.init(
+      {
+        ...providerConfig.fotocasa,
+        xDToken: 'x-d-token-value',
+        cookie: 'foo=bar; baz=qux',
+      },
+      [],
+      [],
+    );
+
+    const capturedHeaders = [];
+
+    global.fetch = async (url, requestInit = {}) => {
+      const requestUrl = new URL(url);
+      capturedHeaders.push(requestInit.headers ?? {});
+
+      if (requestUrl.pathname === '/translatesemantic/search') {
+        return jsonResponse({
+          urlParametersDto: {
+            transactionType: 'RENT',
+            propertyType: 'HOME',
+            text: 'madrid capital',
+            page: '1',
+            pageSize: '36',
+          },
+        });
+      }
+
+      if (requestUrl.pathname === '/v3/placeholders/search') {
+        return jsonResponse({
+          placeholders: [placeholder(88)],
+          info: { count: '1' },
+        });
+      }
+
+      throw new Error(`Unexpected endpoint in test: ${requestUrl.pathname}`);
+    };
+
+    const listings = await provider.config.getListings(SEARCH_URL);
+    expect(listings).to.be.an('array').with.length(1);
+    expect(capturedHeaders.length).to.be.greaterThan(0);
+    capturedHeaders.forEach((headers) => {
+      expect(headers['X-D-Token']).to.equal('x-d-token-value');
+      expect(headers.Cookie).to.equal('foo=bar; baz=qux');
+    });
   });
 });
