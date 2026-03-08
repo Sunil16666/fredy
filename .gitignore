@@ -7,3 +7,5 @@ npm-debug.log
 .idea
 .vscode
 tools/release/config.json
+tools/photocasa/
+reverse-engineering/
