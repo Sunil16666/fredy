@@ -11,7 +11,16 @@ import react from 'eslint-plugin-react';
 
 export default [
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/public/**', 'db/**', 'conf/**'],
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/public/**',
+      'db/**',
+      'conf/**',
+      '.venv/**',
+      'tools/**',
+    ],
   },
 
   {
