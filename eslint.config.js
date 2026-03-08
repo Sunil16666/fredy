@@ -16,6 +16,8 @@ export default [
       '**/dist/**',
       '**/build/**',
       '**/public/**',
+      '**/.venv/**',
+      'tools/**',
       'db/**',
       'conf/**',
       'reverse-engineering/**',

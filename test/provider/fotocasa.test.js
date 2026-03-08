@@ -170,6 +170,12 @@ describe('#fotocasa testsuite()', () => {
 
     global.fetch = async (url) => {
       const requestUrl = new URL(url);
+
+      // Absorb the token-server auto-probe silently (don't add to requestedHosts).
+      if (requestUrl.hostname === '127.0.0.1') {
+        return errorResponse(503, 'unavailable');
+      }
+
       requestedHosts.push(requestUrl.host);
 
       if (requestUrl.pathname === '/translatesemantic/search') {
@@ -238,6 +244,62 @@ describe('#fotocasa testsuite()', () => {
     expect(thrown).to.be.instanceOf(Error);
     expect(thrown.message).to.include('Imperva challenge detected');
     expect(v3Requests).to.have.length(1);
+  });
+
+  it('fetches X-D-Token from token server and sends it on API calls', async () => {
+    provider.init(
+      {
+        ...providerConfig.fotocasa,
+        xDTokenServerUrl: 'http://127.0.0.1:7879',
+      },
+      [],
+      [],
+    );
+
+    const capturedApiHeaders = [];
+
+    global.fetch = async (url, requestInit = {}) => {
+      const requestUrl = new URL(url);
+
+      if (requestUrl.hostname === '127.0.0.1' && requestUrl.port === '7879') {
+        return {
+          ok: true,
+          status: 200,
+          text: async () => 'imperva-token-from-server',
+          json: async () => ({}),
+        };
+      }
+
+      capturedApiHeaders.push(requestInit.headers ?? {});
+
+      if (requestUrl.pathname === '/translatesemantic/search') {
+        return jsonResponse({
+          urlParametersDto: {
+            transactionType: 'RENT',
+            propertyType: 'HOME',
+            text: 'madrid capital',
+            page: '1',
+            pageSize: '36',
+          },
+        });
+      }
+
+      if (requestUrl.pathname === '/v3/placeholders/search') {
+        return jsonResponse({
+          placeholders: [placeholder(99)],
+          info: { count: '1' },
+        });
+      }
+
+      throw new Error(`Unexpected endpoint in test: ${requestUrl.pathname}`);
+    };
+
+    const listings = await provider.config.getListings(SEARCH_URL);
+    expect(listings).to.be.an('array').with.length(1);
+    expect(capturedApiHeaders.length).to.be.greaterThan(0);
+    capturedApiHeaders.forEach((headers) => {
+      expect(headers['X-D-Token']).to.equal('imperva-token-from-server');
+    });
   });
 
   it('sends configured X-D-Token and Cookie headers on mobile API calls', async () => {

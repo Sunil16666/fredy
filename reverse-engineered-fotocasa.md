@@ -96,7 +96,7 @@ From `FotocasaNetworkModuleKt.java`:
 
 ### Search by Web URL
 
-```
+```text
 GET https://apps.gw.fotocasa.es/placeholders/searchByUrl
 ```
 
@@ -270,6 +270,101 @@ The token generation requires:
 - A registered Android device identity that the Imperva backend can validate
 
 There is no public specification for the challenge protocol; the native library is too obfuscated to reverse practically.
+
+### Deep analysis: feasibility of deobfuscating `libbf93.so`
+
+A thorough binary and source analysis was conducted to assess whether the X-D-Token flow can be replicated without Android. The conclusion is **no** — here is the technical evidence.
+
+#### Java layer: device fingerprint collector (`app.tango.o.protection`)
+
+The class `protection.java` (the Imperva SDK's fingerprint collector, visible in jadx output) collects the following Android-specific data to assemble the challenge request payload:
+
+- `android.provider.Settings.Secure.ANDROID_ID` — unique device identifier
+- `android.os.Build.*` — device model, manufacturer, board, bootloader, hardware fingerprint
+- `android.content.pm.PackageManager` + `PackageInfo` — installed package list and APK signing `Signature`
+- `android.content.res.Resources` — screen density, size, configuration
+- `android.accounts.AccountManager` — registered Google/device accounts
+- `android.content.ContentResolver` — system content providers
+- `android.os.Debug` — emulator/debugger detection flags
+- `android.os.Process` — process UID/PID
+
+This data is assembled into a JSON payload (using the `e1` JSONArray builder class) and sent to the challenge URL. None of these APIs exist outside of Android.
+
+#### Java layer: sensor entropy (`app.tango.o.IPCProtection`)
+
+`IPCProtection` implements `SensorEventListener` and feeds accelerometer (type 1) and rotation vector (type 11) data from `SensorManager` into the native library on each `onSensorChanged` event, providing behavioral entropy that Imperva uses for bot/human classification.
+
+#### Java layer: string encryption (two schemes)
+
+1. **Blowfish** (18-int P-array in `ProtectionContext.a()` and `TokenReceiver.a()`): decrypts strings stored as int-pair arrays in static fields. 16 Feistel rounds per string block.
+2. **TEA variant** (`createDeviceProtectedStorageContext.a()`): decrypts inline Unicode ciphertext using per-class round keys (`Protection=61924`, `getToken=59075`, `protection=6112`, `BuildConfig=34435`) and 16 rounds with Δ=−40503.
+
+Understanding these ciphers is not helpful for token replication — they only protect string literals in the Java layer.
+
+#### Native library `libbf93.so` binary analysis
+
+| Property | Finding |
+| -------- | ------- |
+| Architecture | ARM64-v8a ELF shared object, 1.2 MB, stripped |
+| Exports | Only `JNI_OnLoad`, `__emutls_get_address`, `__emutls_register_common`; **no `Java_*` symbols** |
+| JNI binding | **`RegisterNatives` is never called** (confirmed by exhaustive raw scan at correct vtable offset 0x698); no `Java_*` exports exist; JNI interaction mechanism is not statically recoverable |
+| Obfuscation | OLLVM **indirect function pointer dispatch**: 5 942 ARM64 code pointers in `.data` set by `R_AARCH64_RELATIVE` relocations at load time; 103 dispatch clusters (1–205 entries each). Each "basic block" loads the next block's address from `.data` and branches to it (`adrp + ldr + br xN`). Classic switch-on-state-variable CFF is absent — this is a more advanced variant. |
+| OLLVM false positives | Most patterns that appear to be JNI vtable accesses (`ldr [rN, #0x30]`=FindClass etc.) are OLLVM dispatch table loads or stack cookie reads (`mrs tpidr_el0 + ldr [r, #0x28]`). Only patterns distinguishable as true function calls (`ldr + blr`) using cached `.data` pointers were found (18 `CallObjectMethod`-offset hits at `0x118110`, and 1 `GetSuperclass`-offset `br` — the latter is another dispatch). |
+| Real JNI use | Confirmed true JNI interactions are via `CallObjectMethod` (18 call sites all load through `.data[0x118110]`) — consistent with callbacks into Java for device property collection during `JNI_OnLoad`. No `FindClass`, `GetMethodID`, `GetStaticMethodID`, `RegisterNatives`, or `GetJavaVM` found. |
+| Strings | `.rodata` contains only two unencrypted ASCII constants; all class/method name strings are absent (consistent with no `RegisterNatives`/`FindClass` use in native) |
+| Network | **No** network syscalls in native — HTTP is done in Java (`ProtectionConfig`) |
+| Android APIs | `__system_property_get/find_nth/foreach/read/read_callback` — full suite for reading Android system properties |
+| Hardware | `ioctl` on socket — reads MAC addresses from network interfaces |
+| Anti-debug | `prctl(PR_SET_DUMPABLE,0)`, `sigaction(SIGTRAP)` |
+| IPC isolation | `clone(CLONE_VM+CLONE_FILES+CLONE_SIGHAND+...)` — SDK spawns isolated child Android processes (NOT `fork+execv`; no new binary is exec'd); children share parent address space. All IPC-related syscalls (`fork`, `execv`, `pipe2`, `dup2`, `waitpid`, `setpgid`, `kill`) stored as ABS64 `.data` function pointers — invisible to PLT analysis. Dynamic tracing confirmed: child process name = `com.anuntis.fotocasa:abpProtectionProcess` (full Android subprocess). |
+| Crypto | SHA-256 constants in `.rodata`; `dlopen`/`dlsym` for dynamic symbol resolution |
+| Unencrypted constants | `XqQloRO8xTmJB9sL` (16 bytes, likely AES key or nonce), `Cyj2iNNbWdeNolQ@P6X9V8fPsOgS9D9` (31 bytes) — both in `.rodata` at `0x24e6a`/`0x24e7b` |
+| `.data.rel.ro` triple | One `JNINativeMethod`-shaped entry at `0x114038`: encrypted name bytes `cb90188c…`, encrypted sig bytes `e2ff5da9…`, fn pointer `0x2c010` → `b #0x113acc` (TLS accessor trampoline, NOT a registered native method) |
+| `JNI_OnLoad` dispatch | Starts at `0xad058`; dispatches via OLLVM through `[0x11ed20]` → `0xb0ef8` (atomic once-guard using `ldaxr`/`stlxr`); first-time path → `[0x11ccf8]`; second-time path returns to original dispatch entry |
+| `.bss`/`0x126000` area | `JNI_OnLoad` once-guard flag lives at `0x126000+0x8f0`; additional runtime state cached in 0x126xxx |
+
+The native library **cryptographically processes the challenge server's response** and produces the final token. The algorithm is inside the OLLVM-obfuscated `.text` section (~950 KB, `0x2c000–0x113c7f`) with indirect dispatch tables that make static control-flow reconstruction equivalent to running the binary — practical only via dynamic analysis (Frida/QEMU tracing).
+
+#### Why simulation/spoofing fails
+
+1. **ARM64 only** — `libbf93.so` cannot execute on x86/macOS without a full Android-compatible ARM64 environment. The child process spawned via `fork()+execv()` further requires Android Binder/IPC infrastructure.
+
+2. **Server validates real device fingerprints** — Imperva's backend cross-checks ANDROID_ID, Build properties, package list, and APK signature against known-good Android device profiles. Static or synthesized values trigger bot detection immediately.
+
+3. **Sensor data is behavioral, not just entropic** — Imperva collects accelerometer/rotation telemetry over time for human-vs-bot classification. Static or obviously repeated float arrays are flagged.
+
+4. **OLLVM renders static reconstruction impractical** — Control-flow flattening gives each function an exponential number of apparent paths. Symbolic execution (angr, Triton) on ~950 KB of obfuscated ARM64 would require weeks of compute time and significant manual effort.
+
+#### Dynamic tracing findings (Frida child-gating, API 34 emulator)
+
+Running `tools/fotocasa-trace-with-children.py` with spawn gating on a Pixel 6 API 34 emulator revealed the following sequence inside each `abpProtectionProcess` child:
+
+| Event | Detail |
+|-------|--------|
+| Child process identity | `com.anuntis.fotocasa:abpProtectionProcess` — a full Android app subprocess, not a bare native process |
+| `dlsym(JNI_OnLoad)` × 2 | Linker resolves JNI_OnLoad; child **manually re-invokes** JNI_OnLoad a second time to re-initialize libbf93.so in the child's JVM context |
+| `pipe2(flags=O_CLOEXEC)` | Creates a unidirectional pipe within the child; used for intra-child thread synchronization |
+| `write(fd_write, 0x0000000d)` | Child writes 4-byte LE integer **13** to the pipe — SDK init-complete signal between threads |
+| `read(fd_read, 0x0000000d)` | Consuming thread reads back **13** — handshake confirmed |
+| `prop ro.build.version.sdk` | Reads Android SDK level (API 34 = `"34"`) |
+| `dlopen(NULL, 0)` | Opens the global symbol namespace |
+| `dlsym("dl_iterate_phdr")` | **Anti-detection**: obtains `dl_iterate_phdr` to walk all loaded `.so` files and scan for Frida / Xposed / Magisk strings |
+
+**Detection behaviour**: When Frida is injected into `abpProtectionProcess` (via child gating), `dl_iterate_phdr` finds `frida-agent` in the library list and the abpProtectionProcess signals compromise back to the parent. The parent then refuses to call `getToken()`.
+
+**Token server is unaffected** because the token server script runs only in the **parent** process. The child's `dl_iterate_phdr` scans its **own** address space — if Frida is not injected into the child (no child gating), the child's scan passes and `getToken()` succeeds normally.
+
+> **Rule**: never use `--child-gating` / `enable_spawn_gating()` when running the token server. Reserve child-gating sessions strictly for protocol analysis (and accept that the token will be blocked during those sessions).
+
+#### Confirmed approach: Frida token server
+
+The correct solution is the Frida hook already implemented in `tools/fotocasa-token-server.js` and `tools/fotocasa-token-server-setup.sh`. It:
+
+- Runs the **real** Imperva SDK on a **real** Android environment (emulator or physical device)
+- Hooks `FotocasaImpervaSdkWrapper.getToken()` at the Java level — before any cryptography or fingerprinting
+- Exposes fresh tokens via a local HTTP server on `0.0.0.0:7879` inside the app process
+- Bridges to the host via `adb forward tcp:7879 tcp:7879`
+- Requires only a one-time setup; fredy auto-probes `http://127.0.0.1:7879` and refreshes tokens per run
 
 ### How to obtain a valid X-D-Token
 

@@ -1,4 +1,5 @@
 node_modules/
+.venv/
 ui/public/
 db/*.json
 db/*.db*
@@ -7,4 +8,5 @@ npm-debug.log
 .idea
 .vscode
 tools/release/config.json
-reverse-engineering/
+reverse-engineering/*
+tools/photocasa/
