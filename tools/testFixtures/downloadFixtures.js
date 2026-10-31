@@ -237,6 +237,49 @@ async function downloadCasaApiFixtures(url) {
 }
 
 /**
+ * Record one native search page and one detail, excluding advertiser/contact and tracking data.
+ * No cookies or device identities are written into fixtures.
+ * @param {string} url
+ * @returns {Promise<void>}
+ */
+async function downloadImmobiliareFixtures(url) {
+  const { resolveSearch, readPage, readDetail } = await import('../../lib/services/immobiliare/mobile-api.js');
+  const resolved = await resolveSearch(url);
+  if (resolved?.type !== 'search' || !resolved.params) throw new Error('Immobiliare.it did not resolve a search.');
+  const page = await readPage(resolved.params, 0);
+  if (!Array.isArray(page?.list) || page.list.length === 0)
+    throw new Error('Immobiliare.it returned no fixture adverts.');
+  const scrub = (advert) => {
+    const copy = structuredClone(advert);
+    for (const key of [
+      'contacts',
+      'author',
+      'analytics',
+      'referencePerson',
+      'tracking',
+      'mortgage',
+      'externalReferences',
+      'aiSettings',
+    ])
+      delete copy[key];
+    if (copy.description) delete copy.description.translationToken;
+    return copy;
+  };
+  const list = page.list
+    .filter((advert) => advert.rty === 'ad')
+    .slice(0, 3)
+    .map(scrub);
+  if (list.length === 0) throw new Error('Immobiliare.it returned no individual adverts.');
+  const detail = scrub(await readDetail(String(list[0].id)));
+  await writeFile(path.join(FIXTURES_DIR, 'immobiliare_search.json'), JSON.stringify(resolved, null, 2));
+  await writeFile(
+    path.join(FIXTURES_DIR, 'immobiliare_list.json'),
+    JSON.stringify({ ...page, list, count: list.length, totalActive: list.length }, null, 2),
+  );
+  await writeFile(path.join(FIXTURES_DIR, 'immobiliare_detail.json'), JSON.stringify(detail, null, 2));
+}
+
+/**
  * Casa.it's map search, cut down to the one script tag the provider reads.
  *
  * The map search answers with a page of its own whose store keeps the results under `searchMap`
@@ -988,6 +1031,9 @@ async function main() {
           await downloadIdealistaFixtures(site, launchBrowser, closeBrowser);
         }
         await downloadIdealistaApiFixtures(runConfig.url);
+        break;
+      case 'immobiliare':
+        await downloadImmobiliareFixtures(runConfig.url);
         break;
       case 'casa':
         await downloadHtmlProvider(name, runConfig, launchBrowser, closeBrowser, puppeteerExtractor);

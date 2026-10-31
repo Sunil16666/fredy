@@ -7,7 +7,7 @@ platform into Fredy.
 > Always make sure the search results are sorted by **date**, so Fredy picks up the newest listings
 > first.
 
-## The 29 built-in providers
+## The 30 built-in providers
 
 **🇩🇪 Germany**
 
@@ -24,7 +24,7 @@ platform into Fredy.
 **🇦🇹 Austria** · willhaben · Immoscout Österreich
 **🇨🇭 Switzerland** · Flatfox
 **🇪🇸 Spain · 🇮🇹 Italy · 🇵🇹 Portugal** · idealista
-**🇮🇹 Italy** · Subito · Tecnocasa · Tecnorete · Casa.it
+**🇮🇹 Italy** · Subito · Tecnocasa · Tecnorete · Casa.it · Immobiliare.it
 **🇫🇷 France** · leboncoin · SeLoger · Bien'ici
 
 If you run a portal Fredy does not cover yet, contributions are very welcome, see
@@ -92,6 +92,45 @@ Uses the mobile APIs for idealista.com, idealista.it and idealista.pt, and the s
 the country. `/multi/` URLs are supported, unrelated domains are rejected. Searches with filters or
 categories the APIs do not offer fall back to Fredy's browser, which DataDome can block. See the
 [provider documentation](../reverse-engineered-idealista.md) for supported endpoints and filters.
+
+Requests, including token renewals, are serialized at least 400 ms apart and time out after 30 seconds.
+The device identity and refusal cooldown survive restarts; tokens renew automatically. Active-listing
+checks use the national API first. Empty home lookups fall back to the existing website probe for
+other property categories. An API error is a failed probe, not an immediate removal; Fredy’s shared
+policy can still deactivate a listing after ten consecutive failed checks. Detail enrichment reuses
+the search publication date when available. The initial API search reads up to twelve pages per variant; later
+runs read up to three. Narrow busy searches so new results fit between scheduled runs.
+
+## Immobiliare.it
+
+Paste an HTTPS search URL, such as `https://www.immobiliare.it/affitto-case/roma/` or
+`https://www.immobiliare.it/vendita-case/milano/`. Localized search URLs work too. The mobile
+API's own URL resolver translates the filters and geography; an unresolved URL stops the search
+instead of searching without its constraints. Generic `/search-list/?...` URLs are supported;
+map-only URLs are not currently accepted.
+
+Fredy reads the Android API directly, with no browser or emulator needed during a job. Results
+are sorted newest first and read from offset zero, regardless of the pasted page number. The walk
+is capped at twenty pages, deduplicates promoted adverts, and skips multi-unit projects. Narrow a
+wide search if it hits the cap. Prices, rooms, surface, address, coordinates, publication dates and
+photo galleries come from the search. Enable Immobiliare.it in your profile’s provider detail
+preferences to fetch full descriptions for new adverts.
+Hidden prices remain unknown. Manual add-by-URL, price tracking and automatic active-listing
+checks are not offered yet.
+
+**DataDome still governs access.** On the development connection, verifying the official Android
+app unlocked the native API. Filtered searches, pagination and detail reads then worked from Node,
+including fresh anonymous device IDs, while the public website remained blocked. This proves the
+native transport on that connection; it does not guarantee a fresh IP will never need verification.
+Fredy persists its anonymous identity and refreshed DataDome cookie in a private global setting
+that is excluded from all settings responses. No login, personal token or APK is included in Fredy.
+A verification refusal or rate limit fails clearly and pauses API requests for at least fifteen
+minutes (longer when `Retry-After` requires it), including across restarts. Cookie expiry is honored;
+an interrupted page walk reports incomplete results.
+The browser proxy setting does not apply to these direct API requests.
+
+See [the investigation and validation notes](../reverse-engineered-immobiliare.md). Idealista Italy
+already uses the existing `idealista` provider above and needs no separate module.
 
 ## Tecnocasa & Tecnorete
 

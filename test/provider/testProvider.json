@@ -89,6 +89,10 @@
     "url": "https://www.tecnorete.it/annunci/immobili/lombardia/brescia/erbusco.html",
     "enabled": true
   },
+  "immobiliare": {
+    "url": "https://www.immobiliare.it/affitto-case/roma/?prezzoMassimo=600",
+    "enabled": true
+  },
   "idealista": {
     "url": "https://www.idealista.it/affitto-case/roma-roma/",
     "otherSiteUrls": ["https://www.idealista.com/alquiler-viviendas/madrid-madrid/"],

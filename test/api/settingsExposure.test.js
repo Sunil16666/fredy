@@ -22,6 +22,9 @@ const STORED_SETTINGS = {
   workingHours: { from: '08:00', to: '20:00' },
   session_secret: 'super-secret-signing-key',
   proxyAuthSecret: 'shared-with-the-proxy',
+  idealista_device_id: 'private-device',
+  idealista_api_backoff: { quietUntil: 123, quietMs: 900000 },
+  immobiliare_session: { deviceId: 'anonymous-device', cookie: 'private-antibot-cookie', userAgent: 'mobile-agent' },
 };
 
 const settingsRows = Object.entries(STORED_SETTINGS).map(([name, value]) => ({
@@ -41,16 +44,28 @@ const { getSettings, getPublicSettings } = await import('../../lib/services/stor
 
 describe('settings exposure', () => {
   describe('getPublicSettings', () => {
-    it('drops the session secret and the proxy-auth shared secret', async () => {
+    it('drops signing secrets, proxy authentication and the provider session', async () => {
       const published = await getPublicSettings();
       expect(published).not.toHaveProperty('session_secret');
       expect(published).not.toHaveProperty('proxyAuthSecret');
+      expect(published).not.toHaveProperty('immobiliare_session');
+      expect(published).not.toHaveProperty('idealista_device_id');
+      expect(published).not.toHaveProperty('idealista_api_backoff');
     });
 
     it('keeps every non-secret setting', async () => {
       const published = await getPublicSettings();
       for (const name of Object.keys(STORED_SETTINGS)) {
-        if (name === 'session_secret' || name === 'proxyAuthSecret') continue;
+        if (
+          [
+            'session_secret',
+            'proxyAuthSecret',
+            'immobiliare_session',
+            'idealista_device_id',
+            'idealista_api_backoff',
+          ].includes(name)
+        )
+          continue;
         expect(published[name]).toEqual(STORED_SETTINGS[name]);
       }
     });
@@ -58,6 +73,7 @@ describe('settings exposure', () => {
     it('leaves getSettings untouched, so server-side callers still see the secret', async () => {
       const internal = await getSettings();
       expect(internal.session_secret).toBe('super-secret-signing-key');
+      expect(internal.immobiliare_session.cookie).toBe('private-antibot-cookie');
     });
 
     it('returns a copy, so a caller cannot mutate the settings cache', async () => {
@@ -91,11 +107,14 @@ describe('settings exposure', () => {
       return routes['GET /'];
     }
 
-    it('never returns the session secret or the proxy-auth secret, not even to an admin', async () => {
+    it('never returns server-only secrets or provider sessions, not even to an admin', async () => {
       const handler = await loadGetHandler(true);
       const payload = await handler({});
       expect(payload).not.toHaveProperty('session_secret');
       expect(payload).not.toHaveProperty('proxyAuthSecret');
+      expect(payload).not.toHaveProperty('immobiliare_session');
+      expect(payload).not.toHaveProperty('idealista_device_id');
+      expect(payload).not.toHaveProperty('idealista_api_backoff');
     });
 
     it('gives an admin the operator configuration', async () => {
