@@ -246,6 +246,20 @@ export function buildFetchMock() {
     const urlStr = String(url);
     const requestBody = new URLSearchParams(typeof init?.body === 'string' ? init.body : '');
 
+    if (['houseimmobiliare.info', 'www.houseimmobiliare.info'].includes(new URL(urlStr).hostname)) {
+      const parsed = new URL(urlStr);
+      const name = parsed.pathname.startsWith('/immobile/')
+        ? 'houseimmobiliare_detail.html'
+        : parsed.searchParams.has('property_id')
+          ? 'houseimmobiliare_empty.html'
+          : /\/page\/2\/$/.test(parsed.pathname)
+            ? 'houseimmobiliare_page2.html'
+            : 'houseimmobiliare.html';
+      return new Response(await readFile(path.join(FIXTURES_DIR, name), 'utf8'), {
+        headers: { 'Content-Type': 'text/html' },
+      });
+    }
+
     if (new URL(urlStr).hostname === 'android-imm-v4.ws-app.com') {
       const parsed = new URL(urlStr);
       let file = 'immobiliare_search.json';

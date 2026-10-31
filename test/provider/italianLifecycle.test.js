@@ -9,6 +9,7 @@ import * as mockStore from '../mocks/mockStore.js';
 import * as notification from '../mocks/mockNotification.js';
 import * as idealista from '../../lib/provider/idealista.js';
 import * as immobiliare from '../../lib/provider/immobiliare.js';
+import * as houseimmobiliare from '../../lib/provider/houseimmobiliare.js';
 
 // Unlike the general fixture store (whose readers expect listing objects), the production
 // deduplication contract returns hashes. Keep that contract and job isolation in this test.
@@ -26,7 +27,7 @@ vi.doMock('../../lib/services/storage/listingsStorage.js', () => ({
 beforeEach(() => {
   stored.clear();
   notification.reset();
-  mockStore.setUserSettings({ provider_details: ['idealista', 'immobiliare'] });
+  mockStore.setUserSettings({ provider_details: ['idealista', 'immobiliare', 'houseimmobiliare'] });
   mockStore.setGeocodeResult(null);
 });
 afterEach(() => mockStore.setUserSettings(null));
@@ -34,6 +35,7 @@ afterEach(() => mockStore.setUserSettings(null));
 describe.each([
   ['idealista', idealista],
   ['immobiliare', immobiliare],
+  ['houseimmobiliare', houseimmobiliare],
 ])('%s repeated pipeline runs', (id, provider) => {
   it('skips known adverts before details and notifications, without sharing job state', async () => {
     const Fredy = await mockFredy();

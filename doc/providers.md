@@ -7,7 +7,7 @@ platform into Fredy.
 > Always make sure the search results are sorted by **date**, so Fredy picks up the newest listings
 > first.
 
-## The 30 built-in providers
+## The 31 built-in providers
 
 **🇩🇪 Germany**
 
@@ -24,7 +24,7 @@ platform into Fredy.
 **🇦🇹 Austria** · willhaben · Immoscout Österreich
 **🇨🇭 Switzerland** · Flatfox
 **🇪🇸 Spain · 🇮🇹 Italy · 🇵🇹 Portugal** · idealista
-**🇮🇹 Italy** · Subito · Tecnocasa · Tecnorete · Casa.it · Immobiliare.it
+**🇮🇹 Italy** · Subito · Tecnocasa · Tecnorete · Casa.it · Immobiliare.it · House Immobiliare
 **🇫🇷 France** · leboncoin · SeLoger · Bien'ici
 
 If you run a portal Fredy does not cover yet, contributions are very welcome, see
@@ -131,6 +131,33 @@ The browser proxy setting does not apply to these direct API requests.
 
 See [the investigation and validation notes](../reverse-engineered-immobiliare.md). Idealista Italy
 already uses the existing `idealista` provider above and needs no separate module.
+
+## House Immobiliare
+
+This agency covers Umbria and Tuscany. Paste a finished search, for example:
+`https://www.houseimmobiliare.info/?s=&property-search=yes&type=affitto&category[]=appartamenti&price_max=700`.
+Keep the empty `s=` parameter: it identifies the WordPress search. Sale/rental archives and the
+site’s category/location archives are also supported; the homepage is not a search.
+
+Fredy reads public HTML directly, without a browser, login, cookies or emulator. It retains the
+site’s filters (including multiple categories/locations, price, surface, bedrooms and reference),
+checks that results are newest first, and starts at page one on each run. It reads at most thirty
+pages and warns if a search is truncated or interrupted. Narrow broad archives to keep runs short.
+Requests across jobs are serialized at least 500 ms apart and time out after thirty seconds. A
+403/429 pauses requests in the running process for fifteen minutes or a longer `Retry-After`;
+this transient cooldown resets on restart. No authentication session needs persistence.
+
+Search cards supply price, size, location, map coordinates when present, a description preview and
+a gallery. “Info in agenzia” prices stay unknown. The site reports **bedrooms**, not total rooms:
+Fredy leaves `rooms` unknown. Use the portal’s bedroom filter instead of Fredy’s minimum-room filter.
+Enable House Immobiliare in Settings → Listing details to fetch full descriptions, publication dates
+and larger galleries for new adverts. Unchanged adverts reuse Fredy’s stored hashes and listings.
+Manual add-by-URL, price tracking and active-listing probes are not offered without separate evidence.
+
+The public pages answered directly during development. This does not guarantee permanent access,
+and the browser proxy setting does not apply to these direct requests. Fixtures retain only parser
+inputs from two result pages, a detail and an empty search, with scripts and contact forms removed.
+Refresh them using `yarn test:download-fixtures houseimmobiliare`.
 
 ## Tecnocasa & Tecnorete
 
