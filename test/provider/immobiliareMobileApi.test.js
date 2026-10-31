@@ -27,6 +27,7 @@ beforeEach(async () => {
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 async function callAndAdvance(call) {
@@ -170,6 +171,96 @@ describe('Immobiliare.it mobile session', () => {
     await vi.advanceTimersByTimeAsync(3600001);
     await api.resolveSearch('https://www.immobiliare.it/affitto-case/roma/');
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('honors HTTP-date Retry-After across a restart and releases the whole queued batch', async () => {
+    const deadline = Date.now() + 2 * 3600000;
+    fetchMock.mockResolvedValueOnce(
+      new Response('', { status: 429, headers: { 'Retry-After': new Date(deadline).toUTCString() } }),
+    );
+    const one = api.readPage({ c: 1 }, 0);
+    const two = api.readPage({ c: 2 }, 0);
+    const settled = Promise.allSettled([one, two]);
+    await vi.advanceTimersByTimeAsync(501);
+    const outcomes = await settled;
+    expect(outcomes.every((result) => result.status === 'rejected')).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(store.settings.immobiliare_session.quietUntil).toBe(deadline);
+    vi.resetModules();
+    api = await import('../../lib/services/immobiliare/mobile-api.js');
+    await expect(api.readPage({ c: 3 }, 0)).rejects.toThrow('cooling down');
+    await vi.advanceTimersByTimeAsync(2 * 3600000);
+    await api.readPage({ c: 3 }, 0);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses Max-Age ahead of Expires and does not retain malformed cookie replacements', async () => {
+    fetchMock.mockResolvedValueOnce(
+      json(
+        {},
+        { headers: { 'Set-Cookie': `datadome=${cookie}; Max-Age=3600; Expires=Thu, 01 Jan 1970 00:00:00 GMT` } },
+      ),
+    );
+    await api.readPage({ c: 1 }, 0);
+    expect(store.settings.immobiliare_session.cookieExpiresAt).toBe(Date.now() + 3600000);
+    fetchMock.mockResolvedValueOnce(json({}, { headers: { 'Set-Cookie': 'datadome=short; Max-Age=100' } }));
+    await callAndAdvance(() => api.readPage({ c: 1 }, 20));
+    expect(store.settings.immobiliare_session.cookie).toBe(cookie);
+    expect(fetchMock.mock.calls[1][1].headers.Cookie).toBe(`datadome=${cookie}`);
+  });
+
+  it('rotates cookies in a long-running process and carries only the latest one after restart', async () => {
+    for (let index = 0; index < 5; index++) {
+      fetchMock.mockResolvedValueOnce(
+        json({}, { headers: { 'Set-Cookie': `datadome=${cookie}_${index}; Max-Age=3600` } }),
+      );
+      await callAndAdvance(() => api.readPage({ c: 1 }, index * 20));
+      expect(store.settings.immobiliare_session.cookie).toBe(`${cookie}_${index}`);
+      if (index > 0) expect(fetchMock.mock.calls[index][1].headers.Cookie).toBe(`datadome=${cookie}_${index - 1}`);
+    }
+    vi.resetModules();
+    api = await import('../../lib/services/immobiliare/mobile-api.js');
+    await api.readPage({ c: 1 }, 0);
+    expect(fetchMock.mock.calls[5][1].headers.Cookie).toBe(`datadome=${cookie}_4`);
+  });
+
+  it.each(['headers', 'body'])('a thirty-second timeout during %s frees the lane for a queued job', async (phase) => {
+    // Native AbortSignal.timeout uses the runtime clock; connect it to the fake clock so the
+    // test exercises a real abort without waiting thirty wall-clock seconds.
+    const deadlines = [];
+    vi.spyOn(AbortSignal, 'timeout').mockImplementation((milliseconds) => {
+      deadlines.push(milliseconds);
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(new DOMException('deadline', 'TimeoutError')), milliseconds);
+      return controller.signal;
+    });
+    const untilAbort = (signal) =>
+      new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));
+    fetchMock.mockImplementationOnce(async (_url, options) => {
+      if (phase === 'headers') return untilAbort(options.signal);
+      return { ok: true, status: 200, headers: new Headers(), json: () => untilAbort(options.signal) };
+    });
+    const slow = api.readPage({ c: 1 }, 0);
+    const next = api.readPage({ c: 2 }, 0);
+    const settled = Promise.allSettled([slow, next]);
+    await vi.advanceTimersByTimeAsync(30001);
+    const outcomes = await settled;
+    expect(outcomes[0].status).toBe('rejected');
+    expect(outcomes[1].status).toBe('fulfilled');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(deadlines).toEqual([30000, 30000]);
+  });
+
+  it('replaces an invalid saved profile without sending its cookie', async () => {
+    store.settings.immobiliare_session = { deviceId: 'invalid', userAgent: 'WSCommand3<Furious>|old', cookie };
+    await api.readPage({ c: 1 }, 0);
+    expect(fetchMock.mock.calls[0][1].headers.Cookie).toBeUndefined();
+    expect(store.settings.immobiliare_session.deviceId).toMatch(/^[a-f0-9-]{36}$/);
+  });
+
+  it('refuses nonnumeric detail paths before a network request', () => {
+    expect(() => api.readDetail('123/../../private')).toThrow('numeric advert ID');
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('rejects non-scalar filters rather than silently dropping them', async () => {

@@ -69,6 +69,8 @@ Advertiser/contact blocks, tracking data and translation tokens were removed. Re
 
 ## Reproducing verification
 
+Try Fredy’s native API first: the independent runner validation below succeeded without an app
+verification step. If the native API is refused, the following describes the development workaround.
 Use the official Android app on the same network as Fredy, select Italy, and run a property search.
 Complete the verification if DataDome asks for one. Retry Fredy after its cooldown; restarting
 the process retains that deadline. On the tested connection, no app cookie or account token needed to
@@ -91,3 +93,47 @@ Live rent, sale, localized, generic-form and empty searches passed. Offline test
 expiry, restart persistence, refusal recovery, pagination bounds and repeated pipeline deduplication.
 Both providers use per-request timeouts so a stalled host releases the request queue, and pace concurrent jobs. This
 validation includes simulated elapsed time and fresh-process reads, not a multi-day production soak.
+
+## Independent network validation
+
+On 31 October 2026, [this fork-only GitHub Actions run](https://github.com/Sunil16666/fredy/actions/runs/41218427150)
+passed on a fresh hosted Ubuntu runner with Node 22.23.4. No browser, emulator, imported cookie or
+app verification was used. Its first API request sent no cookie. The API supplied anonymous session
+state; a fresh second Node process reused its saved identity and cookie after a sixty-second pause.
+The workflow lived on a temporary validation branch, not upstream or the fork’s default branch.
+
+| Environment | Fresh-process rounds | Requests | HTTP results | Identity reused after restart |
+| --- | ---: | ---: | --- | --- |
+| Local development network, Node 26.0.0 | 3 | 48 | All 200 | Both restarts |
+| GitHub-hosted Ubuntu, Node 22.23.4 | 2 | 32 | All 200 | Yes |
+
+Every round read all 76 Rome rentals at or below €600 with unique canonical links and enriched one
+advert without changing its price, link or hash. It then concurrently resolved and read the first
+page of five independent searches: Milan sale (≤€200,000, ≥2 rooms, ≥40 m²), Turin rent (≤€500,
+≥3 rooms), English-localized Bologna sale (≤€80,000), a generic Rome search URL, and a legitimate
+empty search. Resolver parameters and all available numeric constraints were checked. The nominal
+500 ms request gap measured at least 499 ms, allowing for timer resolution. Full Rome searches took
+about 2.1 seconds locally and 2.2 seconds on the hosted runner; each complete round took about eight
+seconds. The broad Milan search’s 1,291 total results were not all downloaded.
+
+This materially improves the fresh-deployment evidence: prior app verification was not required on
+that independent runner. It does not establish universal IP acceptance, all future app/API versions,
+or a multi-day production soak. The local observation lasted about 2 minutes 24 seconds; the hosted
+observation lasted about 1 minute 16 seconds.
+
+The focused transport tests also cover HTTP-date `Retry-After`, queued requests after refusal,
+Max-Age precedence, invalid cookie replacements, five successive cookie rotations, profile recovery,
+and a thirty-second timeout during either headers or body parsing releasing the request lane.
+The full offline suite passed: 5,103 tests, 33 skipped. Lint and formatting passed.
+
+To reproduce explicitly, outside routine offline CI:
+
+```sh
+node tools/validateImmobiliare.js --output /tmp/immobiliare-report.json --rounds 3 --interval-ms 60000
+```
+
+Each round runs the production provider and transport in a new process against a disposable SQLite
+database, which is reused across rounds and deleted afterwards. The running installation’s database
+is never used. The report contains counts, request paths without advert IDs, status codes, timings
+and booleans; cookies, device IDs, challenge bodies and full listing payloads are not written to it.
+A refusal stops further rounds rather than creating another identity to retry. Internal worker mode accepts only marked disposable validation directories.

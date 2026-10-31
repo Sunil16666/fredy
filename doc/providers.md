@@ -118,16 +118,18 @@ preferences to fetch full descriptions for new adverts.
 Hidden prices remain unknown. Manual add-by-URL, price tracking and automatic active-listing
 checks are not offered yet.
 
-**DataDome still governs access.** On the development connection, verifying the official Android
-app unlocked the native API. Filtered searches, pagination and detail reads then worked from Node,
-including fresh anonymous device IDs, while the public website remained blocked. This proves the
-native transport on that connection; it does not guarantee a fresh IP will never need verification.
+**DataDome still governs access.** The website and official app showed challenges during initial
+development. Later tests passed from a fresh GitHub-hosted Ubuntu runner on an independent network,
+without imported cookies, a browser, emulator or app verification. A second process reused its new
+anonymous session successfully. This is evidence for a fresh deployment, not a guarantee that every
+IP will always be accepted. See the [validation results](../reverse-engineered-immobiliare.md#independent-network-validation).
+
 Fredy persists its anonymous identity and refreshed DataDome cookie in a private global setting
 that is excluded from all settings responses. No login, personal token or APK is included in Fredy.
 A verification refusal or rate limit fails clearly and pauses API requests for at least fifteen
 minutes (longer when `Retry-After` requires it), including across restarts. Cookie expiry is honored;
-an interrupted page walk reports incomplete results.
-The browser proxy setting does not apply to these direct API requests.
+an interrupted page walk reports incomplete results. The browser proxy setting does not apply to
+these direct API requests.
 
 See [the investigation and validation notes](../reverse-engineered-immobiliare.md). Idealista Italy
 already uses the existing `idealista` provider above and needs no separate module.
