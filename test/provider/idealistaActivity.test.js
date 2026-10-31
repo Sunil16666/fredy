@@ -3,10 +3,6 @@
  * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
  */
 
-/*
- * Copyright (c) 2026 by Christian Kellner.
- * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
- */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { config } from '../../lib/provider/idealista.js';
 import { call } from '../../lib/services/idealista/mobile-api.js';
