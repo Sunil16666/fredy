@@ -7,7 +7,7 @@ platform into Fredy.
 > Always make sure the search results are sorted by **date**, so Fredy picks up the newest listings
 > first.
 
-## The 29 built-in providers
+## The 31 built-in providers
 
 **🇩🇪 Germany**
 
@@ -24,7 +24,7 @@ platform into Fredy.
 **🇦🇹 Austria** · willhaben · Immoscout Österreich
 **🇨🇭 Switzerland** · Flatfox
 **🇪🇸 Spain · 🇮🇹 Italy · 🇵🇹 Portugal** · idealista
-**🇮🇹 Italy** · Subito · Tecnocasa · Tecnorete · Casa.it
+**🇮🇹 Italy** · Subito · Tecnocasa · Tecnorete · Casa.it · Immobiliare.it · House Immobiliare
 **🇫🇷 France** · leboncoin · SeLoger · Bien'ici
 
 If you run a portal Fredy does not cover yet, contributions are very welcome, see
@@ -92,6 +92,74 @@ Uses the mobile APIs for idealista.com, idealista.it and idealista.pt, and the s
 the country. `/multi/` URLs are supported, unrelated domains are rejected. Searches with filters or
 categories the APIs do not offer fall back to Fredy's browser, which DataDome can block. See the
 [provider documentation](../reverse-engineered-idealista.md) for supported endpoints and filters.
+
+Requests, including token renewals, are serialized at least 400 ms apart and time out after 30 seconds.
+The device identity and refusal cooldown survive restarts; tokens renew automatically. Active-listing
+checks use the national API first. Empty home lookups fall back to the existing website probe for
+other property categories. An API error is a failed probe, not an immediate removal; Fredy’s shared
+policy can still deactivate a listing after ten consecutive failed checks. Detail enrichment reuses
+the search publication date when available. The initial API search reads up to twelve pages per variant; later
+runs read up to three. Narrow busy searches so new results fit between scheduled runs.
+
+## Immobiliare.it
+
+Paste an HTTPS search URL, such as `https://www.immobiliare.it/affitto-case/roma/` or
+`https://www.immobiliare.it/vendita-case/milano/`. Localized search URLs work too. The mobile
+API's own URL resolver translates the filters and geography; an unresolved URL stops the search
+instead of searching without its constraints. Generic `/search-list/?...` URLs are supported;
+map-only URLs are not currently accepted.
+
+Fredy reads the Android API directly, with no browser or emulator needed during a job. Results
+are sorted newest first and read from offset zero, regardless of the pasted page number. The walk
+is capped at twenty pages, deduplicates promoted adverts, and skips multi-unit projects. Narrow a
+wide search if it hits the cap. Prices, rooms, surface, address, coordinates, publication dates and
+photo galleries come from the search. Enable Immobiliare.it in your profile’s provider detail
+preferences to fetch full descriptions for new adverts.
+Hidden prices remain unknown. Manual add-by-URL, price tracking and automatic active-listing
+checks are not offered yet.
+
+**DataDome still governs access.** The website and official app showed challenges during initial
+development. Later tests passed from a fresh GitHub-hosted Ubuntu runner on an independent network,
+without imported cookies, a browser, emulator or app verification. A second process reused its new
+anonymous session successfully. This is evidence for a fresh deployment, not a guarantee that every
+IP will always be accepted. See the [validation results](../reverse-engineered-immobiliare.md#independent-network-validation).
+
+Fredy persists its anonymous identity and refreshed DataDome cookie in a private global setting
+that is excluded from all settings responses. No login, personal token or APK is included in Fredy.
+A verification refusal or rate limit fails clearly and pauses API requests for at least fifteen
+minutes (longer when `Retry-After` requires it), including across restarts. Cookie expiry is honored;
+an interrupted page walk reports incomplete results. The browser proxy setting does not apply to
+these direct API requests.
+
+See [the investigation and validation notes](../reverse-engineered-immobiliare.md). Idealista Italy
+already uses the existing `idealista` provider above and needs no separate module.
+
+## House Immobiliare
+
+This agency covers Umbria and Tuscany. Paste a finished search, for example:
+`https://www.houseimmobiliare.info/?s=&property-search=yes&type=affitto&category[]=appartamenti&price_max=700`.
+Keep the empty `s=` parameter: it identifies the WordPress search. Sale/rental archives and the
+site’s category/location archives are also supported; the homepage is not a search.
+
+Fredy reads public HTML directly, without a browser, login, cookies or emulator. It retains the
+site’s filters (including multiple categories/locations, price, surface, bedrooms and reference),
+checks that results are newest first, and starts at page one on each run. It reads at most thirty
+pages and warns if a search is truncated or interrupted. Narrow broad archives to keep runs short.
+Requests across jobs are serialized at least 500 ms apart and time out after thirty seconds. A
+403/429 pauses requests in the running process for fifteen minutes or a longer `Retry-After`;
+this transient cooldown resets on restart. No authentication session needs persistence.
+
+Search cards supply price, size, location, map coordinates when present, a description preview and
+a gallery. “Info in agenzia” prices stay unknown. The site reports **bedrooms**, not total rooms:
+Fredy leaves `rooms` unknown. Use the portal’s bedroom filter instead of Fredy’s minimum-room filter.
+Enable House Immobiliare in Settings → Listing details to fetch full descriptions, publication dates
+and larger galleries for new adverts. Unchanged adverts reuse Fredy’s stored hashes and listings.
+Manual add-by-URL, price tracking and active-listing probes are not offered without separate evidence.
+
+The public pages answered directly during development. This does not guarantee permanent access,
+and the browser proxy setting does not apply to these direct requests. Fixtures retain only parser
+inputs from two result pages, a detail and an empty search, with scripts and contact forms removed.
+Refresh them using `yarn test:download-fixtures houseimmobiliare`.
 
 ## Tecnocasa & Tecnorete
 

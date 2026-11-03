@@ -126,6 +126,8 @@ device-id.js`), where it used to be rerolled at every process start. And `call` 
 (`lib/services/idealista/mobile-api.js`): one request at a time, four hundred milliseconds apart.
 After a refusal it stays silent for a quarter of an hour, fails fast inside the silence rather
 than knocking again, and doubles the silence every time the refusal outlasts it, up to two hours.
+The cooldown is persisted across restarts and honors a longer `Retry-After`. Token minting and
+401 renewals use the same pacing, and each HTTP request has a 30-second timeout.
 
 ## Paging
 
@@ -189,12 +191,13 @@ An advert carries `propertyCode`, `price`, `size`, `rooms`, `bathrooms`, `addres
 not state arrives as `0`, not as an absent field.
 
 `firstActivationDate` is on every advert **in the fixture** - epoch milliseconds, the moment the
-portal published it. The live api has since stopped carrying it: a full search read in September
+portal published it. A full search read in September
 2026 answered three hundred adverts and not one carried a date, `quality=high` and `gallery=true`
-included. What the api still answers is the ordering by `publicationDate` and `modificationDate`;
-the values just never travel with the search.
+included. Live searches in October 2026 carry `firstActivationDate` again. Fredy reuses that date
+and asks for detail only when it is absent; ordering by `publicationDate` and `modificationDate`
+remains available.
 
-The dates live on the advert's own detail, which is what the android app opens for one advert:
+A fallback date comes from the advert's own detail, which the Android app opens for one advert:
 
 ```
 GET https://app.idealista.<tld>/api/3/<cc>/detail/<propertyCode>?language=<cc>&quality=high&typology=homes
@@ -203,16 +206,18 @@ GET https://app.idealista.<tld>/api/3/<cc>/detail/<propertyCode>?language=<cc>&q
 Same host, same token, no further credentials. The answer carries `modificationDate` as both the
 epoch milliseconds and the sentence the website prints under them - `{"value": 1788453292000,
 "text": "Annuncio aggiornato un'ora fa"}` - and, when the portal states them, `lastActivationDate`
-and `lastDeactivationDate` alongside. One request per *new* listing is what a run costs: the
-pipeline enriches only what it has not stored yet.
+and `lastDeactivationDate` alongside. When provider details are enabled, the pipeline enriches
+only new listings whose search card omitted a date.
 
 `address` is the line the website prints on a card - "Bilocale in Via Tito Vignoli s.n.c,
 Lorenteggio, Milano" - so an advert read through the api and the same advert scraped off a page
 describe themselves in the same words.
 
-`?adIds=<propertyCode>` answers with that one advert, but only when `operation` and `propertyType`
-match it as well, so an advert cannot be looked up by its code alone. Nor can it be looked up on the
-wrong country's api: a code is only known to the site that issued it.
+`?adIds=<propertyCode>` still applies `operation` and `propertyType`. Fredy tries home sale and
+rental lookups. A matching advert proves activity; an empty answer falls back to the existing
+website probe because the advert may belong to another category. Refusals and malformed data
+are failed probes. Fredy’s shared checker deactivates after ten consecutive failures; a failed
+API lookup does not bypass that policy. A code is only known to the national API that issued it.
 
 ## The website's filters, and the api's
 

@@ -33,6 +33,11 @@ const PT = PORTALS['idealista.pt'];
 
 // The device id is an installation's property and lives in the settings table; in these tests it
 // is simply a constant, so no database is ever opened.
+vi.mock('../../lib/services/storage/settingsStorage.js', () => ({
+  getSettings: async () => ({}),
+  upsertSettings: vi.fn(),
+}));
+
 vi.mock('../../lib/services/idealista/device-id.js', () => ({
   idealistaDeviceId: async () => '0123456789abcdef',
 }));

@@ -1,0 +1,511 @@
+{
+  "id": 134261367,
+  "uuid": "9657aceb-4c72-5aed-803a-851e1faa6125",
+  "rty": "ad",
+  "title": "Apartment",
+  "lastModified": 1793364033,
+  "creationDate": 1793364033,
+  "enabled": true,
+  "contract": {
+    "id": 2,
+    "name": "Rent",
+    "isHidden": false
+  },
+  "topology": {
+    "typology": {
+      "id": 4,
+      "name": "Apartment"
+    },
+    "category": {
+      "id": 1,
+      "name": "Residential"
+    },
+    "surface": {
+      "size": 117,
+      "unitOfMeasure": "m²"
+    },
+    "isLuxury": false,
+    "rooms": "4",
+    "bathrooms": "1",
+    "floor": "2",
+    "lift": true,
+    "balcony": true,
+    "furnished": true
+  },
+  "price": {
+    "value": "€ 500/month",
+    "raw": 500,
+    "currency": "EUR",
+    "isHidden": false,
+    "startPrice": null,
+    "discount": null
+  },
+  "geography": {
+    "municipality": {
+      "id": 6737,
+      "name": "Rome"
+    },
+    "province": {
+      "id": "RM",
+      "name": "Rome"
+    },
+    "geolocation": {
+      "latitude": 41.8766,
+      "longitude": 12.5089,
+      "visibilityType": "exact_location",
+      "geoHash": null
+    },
+    "zipcode": "00183",
+    "street": "Via satrico, 65",
+    "macrozone": {
+      "id": 10151,
+      "name": "Re di Roma, San Giovanni"
+    },
+    "microzone": {
+      "id": 10811,
+      "name": "San Giovanni"
+    }
+  },
+  "badge": {
+    "visibility": {
+      "key": "isPremium",
+      "label": "Premium",
+      "opt": [
+        {
+          "label": "bgColor",
+          "value": "#666666"
+        }
+      ]
+    },
+    "isNew": true,
+    "isNewConstruction": false
+  },
+  "media": {
+    "placeholder": null,
+    "images": [
+      {
+        "id": 2045144981,
+        "sd": "https://pwm.im-cdn.it/image/2045144981/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045144981/xxl.jpg",
+        "label": "Facade",
+        "category": {
+          "code": "other",
+          "label": "Other",
+          "key": "ext_palace"
+        }
+      },
+      {
+        "id": 2045145017,
+        "sd": "https://pwm.im-cdn.it/image/2045145017/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145017/xxl.jpg",
+        "label": "Hallway",
+        "category": {
+          "code": "other",
+          "label": "Other",
+          "key": "int_passageway"
+        }
+      },
+      {
+        "id": 2045145029,
+        "sd": "https://pwm.im-cdn.it/image/2045145029/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145029/xxl.jpg",
+        "label": "Living room",
+        "category": {
+          "code": "livingRoom",
+          "label": "Living room",
+          "key": "int_livingroom"
+        }
+      },
+      {
+        "id": 2045145041,
+        "sd": "https://pwm.im-cdn.it/image/2045145041/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145041/xxl.jpg",
+        "label": "Living room",
+        "category": {
+          "code": "livingRoom",
+          "label": "Living room",
+          "key": "int_livingroom"
+        }
+      },
+      {
+        "id": 2045145059,
+        "sd": "https://pwm.im-cdn.it/image/2045145059/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145059/xxl.jpg",
+        "label": "Living room",
+        "category": {
+          "code": "livingRoom",
+          "label": "Living room",
+          "key": "int_livingroom"
+        }
+      },
+      {
+        "id": 2045145077,
+        "sd": "https://pwm.im-cdn.it/image/2045145077/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145077/xxl.jpg",
+        "label": "Bedroom",
+        "category": {
+          "code": "bedroom",
+          "label": "Bedroom",
+          "key": "int_bedroom"
+        }
+      },
+      {
+        "id": 2045145085,
+        "sd": "https://pwm.im-cdn.it/image/2045145085/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145085/xxl.jpg",
+        "label": "Bedroom",
+        "category": {
+          "code": "bedroom",
+          "label": "Bedroom",
+          "key": "int_bedroom"
+        }
+      },
+      {
+        "id": 2045145107,
+        "sd": "https://pwm.im-cdn.it/image/2045145107/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145107/xxl.jpg",
+        "label": "Bedroom",
+        "category": {
+          "code": "bedroom",
+          "label": "Bedroom",
+          "key": "int_bedroom"
+        }
+      },
+      {
+        "id": 2045145121,
+        "sd": "https://pwm.im-cdn.it/image/2045145121/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145121/xxl.jpg",
+        "label": "Hallway",
+        "category": {
+          "code": "other",
+          "label": "Other",
+          "key": "int_passageway"
+        }
+      },
+      {
+        "id": 2045145139,
+        "sd": "https://pwm.im-cdn.it/image/2045145139/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145139/xxl.jpg",
+        "label": "Bedroom",
+        "category": {
+          "code": "bedroom",
+          "label": "Bedroom",
+          "key": "int_bedroom"
+        }
+      },
+      {
+        "id": 2045145151,
+        "sd": "https://pwm.im-cdn.it/image/2045145151/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145151/xxl.jpg",
+        "label": "Bedroom",
+        "category": {
+          "code": "bedroom",
+          "label": "Bedroom",
+          "key": "int_bedroom"
+        }
+      },
+      {
+        "id": 2045145163,
+        "sd": "https://pwm.im-cdn.it/image/2045145163/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145163/xxl.jpg",
+        "label": "Bedroom",
+        "category": {
+          "code": "bedroom",
+          "label": "Bedroom",
+          "key": "int_bedroom"
+        }
+      },
+      {
+        "id": 2045145181,
+        "sd": "https://pwm.im-cdn.it/image/2045145181/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145181/xxl.jpg",
+        "label": "Bedroom",
+        "category": {
+          "code": "bedroom",
+          "label": "Bedroom",
+          "key": "int_bedroom"
+        }
+      },
+      {
+        "id": 2045145191,
+        "sd": "https://pwm.im-cdn.it/image/2045145191/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145191/xxl.jpg",
+        "label": "Bedroom",
+        "category": {
+          "code": "bedroom",
+          "label": "Bedroom",
+          "key": "int_bedroom"
+        }
+      },
+      {
+        "id": 2045145209,
+        "sd": "https://pwm.im-cdn.it/image/2045145209/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145209/xxl.jpg",
+        "label": "Bedroom",
+        "category": {
+          "code": "bedroom",
+          "label": "Bedroom",
+          "key": "int_bedroom"
+        }
+      },
+      {
+        "id": 2045145217,
+        "sd": "https://pwm.im-cdn.it/image/2045145217/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145217/xxl.jpg",
+        "label": "Bathroom",
+        "category": {
+          "code": "bathroom",
+          "label": "Bathroom",
+          "key": "int_toilet"
+        }
+      },
+      {
+        "id": 2045145231,
+        "sd": "https://pwm.im-cdn.it/image/2045145231/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145231/xxl.jpg",
+        "label": "Bathroom",
+        "category": {
+          "code": "bathroom",
+          "label": "Bathroom",
+          "key": "int_toilet"
+        }
+      },
+      {
+        "id": 2045145241,
+        "sd": "https://pwm.im-cdn.it/image/2045145241/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145241/xxl.jpg",
+        "label": "Terrace",
+        "category": {
+          "code": "other",
+          "label": "Other",
+          "key": "ext_terrace"
+        }
+      },
+      {
+        "id": 2045145255,
+        "sd": "https://pwm.im-cdn.it/image/2045145255/m-c.jpg",
+        "hd": "https://pwm.im-cdn.it/image/2045145255/xxl.jpg",
+        "label": "Veranda",
+        "category": {
+          "code": "other",
+          "label": "Other",
+          "key": "ext_veranda"
+        }
+      }
+    ],
+    "floorPlans": [
+      {
+        "sd": "https://pic.im-cdn.it/plan/137071157/m.jpg",
+        "hd": "https://pic.im-cdn.it/plan/137071157/xxl.jpg",
+        "label": "pln dinamica"
+      }
+    ],
+    "fotoplan": {
+      "url": "https://www.tecnocasa.it/floorplan/estate/61293632.html"
+    }
+  },
+  "description": {
+    "reference": "61293632",
+    "content": "Via Satrico, near Piazza Zama, we are offering three rooms for rent in a 120 m² commercial apartment on the second floor of a building with a lift.\nThere are three rooms: two at €500 per month and one larger room at €520 per month. An additional €140 covers condominium fees, water, TARI (waste tax) and heating; other utilities are charged separately.\nThe apartment’s shared areas include an entrance hall, living room, kitchen, bathroom, storage room and two balconies.\nThe contract is a temporary student rental, and only female students are eligible.",
+    "caption": null
+  },
+  "soldTransactionDate": null,
+  "isUnread": false,
+  "subProperties": null,
+  "shareUrl": "https://www.immobiliare.it/en/annunci/134261367/?utm_source=navigator-share&utm_medium=share&utm_content=app",
+  "mainData": [
+    {
+      "header": "General",
+      "rows": [
+        {
+          "icon": "typology_icon",
+          "value": "Apartment | Partial ownership | Medium property class",
+          "label": "Type",
+          "highlighted": 1
+        },
+        {
+          "icon": "contract_icon",
+          "value": "Rent",
+          "label": "Contract",
+          "highlighted": 2
+        },
+        {
+          "icon": "status_icon",
+          "value": "Excellent / Refurbished",
+          "label": "Condition",
+          "highlighted": null
+        },
+        {
+          "icon": "availability_icon",
+          "value": "available",
+          "label": "Availability",
+          "highlighted": null
+        },
+        {
+          "icon": "furniture_icon",
+          "value": "Yes",
+          "label": "Furnished",
+          "highlighted": 11
+        }
+      ]
+    },
+    {
+      "header": "Overview",
+      "rows": [
+        {
+          "icon": "floor_icon",
+          "value": "2",
+          "label": "Floor",
+          "highlighted": 3
+        },
+        {
+          "icon": "surface_icon",
+          "value": "117 m²",
+          "label": "Surface",
+          "highlighted": 6
+        },
+        {
+          "icon": "rooms_icon",
+          "value": "4",
+          "label": "Rooms",
+          "highlighted": 7
+        }
+      ]
+    },
+    {
+      "header": "Property composition",
+      "rows": [
+        {
+          "icon": "bedrooms_icon",
+          "value": "3",
+          "label": "Bedrooms",
+          "highlighted": 8
+        },
+        {
+          "icon": "kitchen_icon",
+          "value": "Kitchen diner",
+          "label": "Kitchen",
+          "highlighted": 9
+        },
+        {
+          "icon": "bathroom_icon",
+          "value": "1",
+          "label": "Bathrooms",
+          "highlighted": 10
+        },
+        {
+          "icon": "balcony_icon",
+          "value": "Yes",
+          "label": "Balcony",
+          "highlighted": 12
+        },
+        {
+          "icon": "terrace_icon",
+          "value": "No",
+          "label": "Terrace",
+          "highlighted": 13
+        },
+        {
+          "icon": "garden_icon",
+          "value": "No garden",
+          "label": "Garden",
+          "highlighted": null
+        }
+      ]
+    },
+    {
+      "header": "Building information",
+      "rows": [
+        {
+          "icon": "year_of_construction_icon",
+          "value": "1950",
+          "label": "Year of construction",
+          "highlighted": null
+        },
+        {
+          "icon": "floors_icon",
+          "value": "10 floors",
+          "label": "Building floors",
+          "highlighted": 4
+        },
+        {
+          "icon": "elevator_icon",
+          "value": "Yes",
+          "label": "Lift",
+          "highlighted": 5
+        },
+        {
+          "icon": "handicap_access_icon",
+          "value": "No",
+          "label": "Disabled access",
+          "highlighted": null
+        }
+      ]
+    },
+    {
+      "header": "Heating",
+      "rows": [
+        {
+          "icon": "heating_icon",
+          "value": "Central, with radiators, powered by methane",
+          "label": "Heating",
+          "highlighted": 15
+        }
+      ]
+    }
+  ],
+  "surfaceConstitution": null,
+  "featuresTags": null,
+  "infoCosts": [
+    {
+      "key": "price",
+      "value": "€ 500/month",
+      "label": "Price",
+      "icon": "icon_price"
+    },
+    {
+      "key": "price_mq",
+      "value": "4 €/m²",
+      "label": "Price per m²",
+      "icon": "icon_price_mq"
+    }
+  ],
+  "costs": [
+    {
+      "value": "€ 92/month",
+      "label": "Condominium fees"
+    },
+    {
+      "value": "Not indicated",
+      "label": "Deposit"
+    }
+  ],
+  "energyClass": {
+    "consumptions": [
+      {
+        "icon": "icon_energy_consumption",
+        "label": "Energy consumption",
+        "value": "E",
+        "color": "#e67300",
+        "description": null
+      }
+    ],
+    "features": [
+      {
+        "type": "generic",
+        "value": "1950",
+        "label": "Year of construction"
+      },
+      {
+        "type": "generic",
+        "value": "Excellent / Refurbished",
+        "label": "Condition"
+      },
+      {
+        "type": "generic",
+        "value": "Central, with radiators, powered by methane",
+        "label": "Heating"
+      }
+    ]
+  }
+}

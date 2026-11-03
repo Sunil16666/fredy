@@ -1,0 +1,570 @@
+{
+  "list": [
+    {
+      "id": 134261367,
+      "uuid": "9657aceb-4c72-5aed-803a-851e1faa6125",
+      "rty": "ad",
+      "title": "Apartment",
+      "lastModified": 1793364033,
+      "creationDate": 1793364033,
+      "enabled": true,
+      "contract": {
+        "id": 2,
+        "name": "Rent",
+        "isHidden": false
+      },
+      "topology": {
+        "typology": {
+          "id": 4,
+          "name": "Apartment"
+        },
+        "category": {
+          "id": 1,
+          "name": "Residential"
+        },
+        "surface": {
+          "size": 117,
+          "unitOfMeasure": "m²"
+        },
+        "isLuxury": false,
+        "rooms": "4",
+        "bathrooms": "1",
+        "floor": "2",
+        "lift": true,
+        "balcony": true,
+        "furnished": true
+      },
+      "price": {
+        "value": "€ 500/month",
+        "raw": 500,
+        "currency": "EUR",
+        "isHidden": false,
+        "startPrice": null,
+        "discount": null
+      },
+      "geography": {
+        "municipality": {
+          "id": 6737,
+          "name": "Rome"
+        },
+        "province": {
+          "id": "RM",
+          "name": "Rome"
+        },
+        "geolocation": {
+          "latitude": 41.8766,
+          "longitude": 12.5089,
+          "visibilityType": "exact_location",
+          "geoHash": "sr2yhxks"
+        },
+        "zipcode": "00183",
+        "street": "Via satrico, 65",
+        "macrozone": {
+          "id": 10151,
+          "name": "Re di Roma, San Giovanni"
+        },
+        "microzone": {
+          "id": 10811,
+          "name": "San Giovanni"
+        }
+      },
+      "badge": {
+        "visibility": {
+          "key": "isPremium",
+          "label": "Premium",
+          "opt": [
+            {
+              "label": "bgColor",
+              "value": "#666666"
+            }
+          ]
+        },
+        "isNew": true,
+        "isNewConstruction": false
+      },
+      "media": {
+        "placeholder": null,
+        "images": [
+          {
+            "id": 2045144981,
+            "sd": "https://pwm.im-cdn.it/image/2045144981/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045144981/xxl.jpg",
+            "label": "Facciata"
+          },
+          {
+            "id": 2045145017,
+            "sd": "https://pwm.im-cdn.it/image/2045145017/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145017/xxl.jpg",
+            "label": "Disimpegno"
+          },
+          {
+            "id": 2045145029,
+            "sd": "https://pwm.im-cdn.it/image/2045145029/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145029/xxl.jpg",
+            "label": "Salone"
+          },
+          {
+            "id": 2045145041,
+            "sd": "https://pwm.im-cdn.it/image/2045145041/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145041/xxl.jpg",
+            "label": "Salone"
+          },
+          {
+            "id": 2045145059,
+            "sd": "https://pwm.im-cdn.it/image/2045145059/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145059/xxl.jpg",
+            "label": "Salone"
+          },
+          {
+            "id": 2045145077,
+            "sd": "https://pwm.im-cdn.it/image/2045145077/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145077/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2045145085,
+            "sd": "https://pwm.im-cdn.it/image/2045145085/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145085/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2045145107,
+            "sd": "https://pwm.im-cdn.it/image/2045145107/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145107/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2045145121,
+            "sd": "https://pwm.im-cdn.it/image/2045145121/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145121/xxl.jpg",
+            "label": "Disimpegno"
+          },
+          {
+            "id": 2045145139,
+            "sd": "https://pwm.im-cdn.it/image/2045145139/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145139/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2045145151,
+            "sd": "https://pwm.im-cdn.it/image/2045145151/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145151/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2045145163,
+            "sd": "https://pwm.im-cdn.it/image/2045145163/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145163/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2045145181,
+            "sd": "https://pwm.im-cdn.it/image/2045145181/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145181/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2045145191,
+            "sd": "https://pwm.im-cdn.it/image/2045145191/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145191/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2045145209,
+            "sd": "https://pwm.im-cdn.it/image/2045145209/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145209/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2045145217,
+            "sd": "https://pwm.im-cdn.it/image/2045145217/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145217/xxl.jpg",
+            "label": "Bagno"
+          },
+          {
+            "id": 2045145231,
+            "sd": "https://pwm.im-cdn.it/image/2045145231/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145231/xxl.jpg",
+            "label": "Bagno"
+          },
+          {
+            "id": 2045145241,
+            "sd": "https://pwm.im-cdn.it/image/2045145241/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145241/xxl.jpg",
+            "label": "Terrazzo"
+          },
+          {
+            "id": 2045145255,
+            "sd": "https://pwm.im-cdn.it/image/2045145255/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2045145255/xxl.jpg",
+            "label": "Veranda"
+          }
+        ],
+        "floorPlans": [
+          {
+            "sd": "https://pic.im-cdn.it/plan/137071157/m.jpg",
+            "hd": "https://pic.im-cdn.it/plan/137071157/xxl.jpg",
+            "label": "pln dinamica"
+          }
+        ],
+        "showStagedImagesIcon": false
+      },
+      "soldTransactionDate": null,
+      "isUnread": false,
+      "subProperties": null
+    },
+    {
+      "id": 134022109,
+      "uuid": "0a6145b8-adce-53eb-ae28-b1643f455afc",
+      "rty": "ad",
+      "title": "Apartment",
+      "lastModified": 1793183716,
+      "creationDate": 1793183716,
+      "enabled": true,
+      "contract": {
+        "id": 2,
+        "name": "Rent",
+        "isHidden": false
+      },
+      "topology": {
+        "typology": {
+          "id": 4,
+          "name": "Apartment"
+        },
+        "category": {
+          "id": 1,
+          "name": "Residential"
+        },
+        "surface": {
+          "size": 90,
+          "unitOfMeasure": "m²"
+        },
+        "isLuxury": false,
+        "rooms": "3",
+        "bathrooms": "1",
+        "floor": "1",
+        "lift": true,
+        "terrace": true,
+        "furnished": true
+      },
+      "price": {
+        "value": "€ 450/month",
+        "raw": 450,
+        "currency": "EUR",
+        "isHidden": false,
+        "startPrice": null,
+        "discount": null
+      },
+      "geography": {
+        "municipality": {
+          "id": 6737,
+          "name": "Rome"
+        },
+        "province": {
+          "id": "RM",
+          "name": "Rome"
+        },
+        "geolocation": {
+          "latitude": 41.911,
+          "longitude": 12.4186,
+          "visibilityType": "exact_location",
+          "geoHash": "sr2y6tdv"
+        },
+        "zipcode": "00167",
+        "street": "Via Mattia Battistini",
+        "macrozone": {
+          "id": 10172,
+          "name": "Aurelio, Boccea"
+        },
+        "microzone": {
+          "id": 12716,
+          "name": "Boccea"
+        }
+      },
+      "badge": {
+        "visibility": {
+          "key": "isPremium",
+          "label": "Premium",
+          "opt": [
+            {
+              "label": "bgColor",
+              "value": "#666666"
+            }
+          ]
+        },
+        "isNew": true,
+        "isNewConstruction": false
+      },
+      "media": {
+        "placeholder": null,
+        "images": [
+          {
+            "id": 2039968333,
+            "sd": "https://pwm.im-cdn.it/image/2039968333/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039968333/xxl.jpg",
+            "label": "Salone"
+          },
+          {
+            "id": 2039969083,
+            "sd": "https://pwm.im-cdn.it/image/2039969083/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039969083/xxl.jpg",
+            "label": "Salone"
+          },
+          {
+            "id": 2039969085,
+            "sd": "https://pwm.im-cdn.it/image/2039969085/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039969085/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2039969091,
+            "sd": "https://pwm.im-cdn.it/image/2039969091/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039969091/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2039969099,
+            "sd": "https://pwm.im-cdn.it/image/2039969099/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039969099/xxl.jpg",
+            "label": "Bagno"
+          },
+          {
+            "id": 2039969103,
+            "sd": "https://pwm.im-cdn.it/image/2039969103/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039969103/xxl.jpg",
+            "label": "Cucina"
+          },
+          {
+            "id": 2039969109,
+            "sd": "https://pwm.im-cdn.it/image/2039969109/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039969109/xxl.jpg",
+            "label": "Disimpegno"
+          },
+          {
+            "id": 2039969117,
+            "sd": "https://pwm.im-cdn.it/image/2039969117/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039969117/xxl.jpg",
+            "label": "Corridoio"
+          },
+          {
+            "id": 2039969125,
+            "sd": "https://pwm.im-cdn.it/image/2039969125/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039969125/xxl.jpg",
+            "label": "Terrazzo"
+          },
+          {
+            "id": 2039969131,
+            "sd": "https://pwm.im-cdn.it/image/2039969131/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039969131/xxl.jpg",
+            "label": "Terrazzo"
+          }
+        ],
+        "showStagedImagesIcon": false
+      },
+      "soldTransactionDate": null,
+      "isUnread": false,
+      "subProperties": null
+    },
+    {
+      "id": 133930103,
+      "uuid": "ff28a55d-6bd0-5da0-ac0b-38d3a0dc6605",
+      "rty": "ad",
+      "title": "Apartment",
+      "lastModified": 1793200840,
+      "creationDate": 1793101534,
+      "enabled": true,
+      "contract": {
+        "id": 2,
+        "name": "Rent",
+        "isHidden": false
+      },
+      "topology": {
+        "typology": {
+          "id": 4,
+          "name": "Apartment"
+        },
+        "category": {
+          "id": 1,
+          "name": "Residential"
+        },
+        "surface": {
+          "size": 45,
+          "unitOfMeasure": "m²"
+        },
+        "isLuxury": false,
+        "rooms": "2",
+        "bathrooms": "1",
+        "floor": "3",
+        "lift": false,
+        "balcony": true,
+        "terrace": true,
+        "furnished": true
+      },
+      "price": {
+        "value": "€ 600/month",
+        "raw": 600,
+        "currency": "EUR",
+        "isHidden": false,
+        "startPrice": null,
+        "discount": null
+      },
+      "geography": {
+        "municipality": {
+          "id": 6737,
+          "name": "Rome"
+        },
+        "province": {
+          "id": "RM",
+          "name": "Rome"
+        },
+        "geolocation": {
+          "latitude": 41.908,
+          "longitude": 12.6101,
+          "visibilityType": "exact_location",
+          "geoHash": "sr2yqvn7"
+        },
+        "zipcode": "00155",
+        "street": "Via Michelangelo Cerquozzi",
+        "macrozone": {
+          "id": 10166,
+          "name": "Alessandrino, Tor Sapienza, Torre Maura"
+        },
+        "microzone": {
+          "id": 12733,
+          "name": "Tor Sapienza - La Rustica"
+        }
+      },
+      "badge": {
+        "visibility": {
+          "key": "isPremium",
+          "label": "Premium",
+          "opt": [
+            {
+              "label": "bgColor",
+              "value": "#666666"
+            }
+          ]
+        },
+        "isNew": true,
+        "isNewConstruction": false
+      },
+      "media": {
+        "placeholder": null,
+        "images": [
+          {
+            "id": 2038038511,
+            "sd": "https://pwm.im-cdn.it/image/2038038511/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2038038511/xxl.jpg",
+            "label": "Facciata"
+          },
+          {
+            "id": 2039932495,
+            "sd": "https://pwm.im-cdn.it/image/2039932495/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932495/xxl.jpg",
+            "label": "Corridoio"
+          },
+          {
+            "id": 2039932721,
+            "sd": "https://pwm.im-cdn.it/image/2039932721/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932721/xxl.jpg",
+            "label": "Cucina"
+          },
+          {
+            "id": 2039932599,
+            "sd": "https://pwm.im-cdn.it/image/2039932599/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932599/xxl.jpg",
+            "label": "Vista"
+          },
+          {
+            "id": 2039932553,
+            "sd": "https://pwm.im-cdn.it/image/2039932553/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932553/xxl.jpg",
+            "label": "Vista"
+          },
+          {
+            "id": 2039932577,
+            "sd": "https://pwm.im-cdn.it/image/2039932577/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932577/xxl.jpg",
+            "label": "Vista"
+          },
+          {
+            "id": 2039932635,
+            "sd": "https://pwm.im-cdn.it/image/2039932635/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932635/xxl.jpg",
+            "label": "Cucina"
+          },
+          {
+            "id": 2039932617,
+            "sd": "https://pwm.im-cdn.it/image/2039932617/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932617/xxl.jpg",
+            "label": "Terrazzo"
+          },
+          {
+            "id": 2039932781,
+            "sd": "https://pwm.im-cdn.it/image/2039932781/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932781/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2039932809,
+            "sd": "https://pwm.im-cdn.it/image/2039932809/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932809/xxl.jpg",
+            "label": "Bagno"
+          },
+          {
+            "id": 2039933115,
+            "sd": "https://pwm.im-cdn.it/image/2039933115/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039933115/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2039933025,
+            "sd": "https://pwm.im-cdn.it/image/2039933025/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039933025/xxl.jpg",
+            "label": "Camera da letto"
+          },
+          {
+            "id": 2039932889,
+            "sd": "https://pwm.im-cdn.it/image/2039932889/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932889/xxl.jpg",
+            "label": "Bagno"
+          },
+          {
+            "id": 2039932907,
+            "sd": "https://pwm.im-cdn.it/image/2039932907/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932907/xxl.jpg",
+            "label": "Bagno"
+          },
+          {
+            "id": 2039932929,
+            "sd": "https://pwm.im-cdn.it/image/2039932929/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2039932929/xxl.jpg",
+            "label": "Bagno"
+          },
+          {
+            "id": 2038038427,
+            "sd": "https://pwm.im-cdn.it/image/2038038427/m-c.jpg",
+            "hd": "https://pwm.im-cdn.it/image/2038038427/xxl.jpg",
+            "label": "Cortile interno"
+          }
+        ],
+        "floorPlans": [
+          {
+            "sd": "https://pic.im-cdn.it/plan/136866733/m.jpg",
+            "hd": "https://pic.im-cdn.it/plan/136866733/xxl.jpg",
+            "label": "fac simile planimetria"
+          }
+        ],
+        "showStagedImagesIcon": false
+      },
+      "soldTransactionDate": null,
+      "isUnread": false,
+      "subProperties": null
+    }
+  ],
+  "offset": 0,
+  "count": 3,
+  "totalActive": 3,
+  "searchName": "Houses to rent in Rome",
+  "markedAds": 0
+}
