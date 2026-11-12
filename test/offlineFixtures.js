@@ -246,6 +246,32 @@ export function buildFetchMock() {
     const urlStr = String(url);
     const requestBody = new URLSearchParams(typeof init?.body === 'string' ? init.body : '');
 
+    if (['houseimmobiliare.info', 'www.houseimmobiliare.info'].includes(new URL(urlStr).hostname)) {
+      const parsed = new URL(urlStr);
+      const name = parsed.pathname.startsWith('/immobile/')
+        ? 'houseimmobiliare_detail.html'
+        : parsed.searchParams.has('property_id')
+          ? 'houseimmobiliare_empty.html'
+          : /\/page\/2\/$/.test(parsed.pathname)
+            ? 'houseimmobiliare_page2.html'
+            : 'houseimmobiliare.html';
+      return new Response(await readFile(path.join(FIXTURES_DIR, name), 'utf8'), {
+        headers: { 'Content-Type': 'text/html' },
+      });
+    }
+
+    if (new URL(urlStr).hostname === 'android-imm-v4.ws-app.com') {
+      const parsed = new URL(urlStr);
+      let file = 'immobiliare_search.json';
+      if (parsed.pathname === '/b2c/v1/properties') file = 'immobiliare_list.json';
+      else if (/^\/b2c\/v1\/properties\/\d+$/.test(parsed.pathname)) file = 'immobiliare_detail.json';
+      else if (parsed.pathname !== '/b2c/v1/resolver/url')
+        throw new Error(`Unrecorded Immobiliare.it request: ${parsed.pathname}`);
+      const body = JSON.parse(await readFile(path.join(FIXTURES_DIR, file), 'utf8'));
+      if (file === 'immobiliare_list.json' && Number(parsed.searchParams.get('start')) > 0) body.list = [];
+      return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } });
+    }
+
     // willhaben reads its results out of the page's __NEXT_DATA__, so this is the one fixture
     // served as text rather than json.
     if (urlStr.includes('willhaben.at/iad/')) {

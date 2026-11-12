@@ -22,6 +22,16 @@ const configOf = (id) => providers.find((provider) => provider.metaInformation.i
  */
 const RECORDED_SEARCHES = [
   [
+    'houseimmobiliare',
+    'https://www.houseimmobiliare.info/?s=&property-search=yes&type=affitto&price_min=300&price_max=700',
+    { min: 300, max: 700 },
+  ],
+  [
+    'immobiliare',
+    'https://www.immobiliare.it/affitto-case/roma/?prezzoMinimo=500&prezzoMassimo=1000',
+    { min: 500, max: 1000 },
+  ],
+  [
     'deutscheWohnen',
     'https://www.deutsche-wohnen.com/mieten/mietangebote?rentType=miete&city=Berlin&immoType=wohnung&priceMin=500&priceMax=1000&minRooms=Beliebig&balcony=egal',
     { min: 500, max: 1000 },

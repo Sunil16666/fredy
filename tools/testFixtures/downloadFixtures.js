@@ -237,6 +237,113 @@ async function downloadCasaApiFixtures(url) {
 }
 
 /**
+ * Record one native search page and one detail, excluding advertiser/contact and tracking data.
+ * No cookies or device identities are written into fixtures.
+ * @param {string} url
+ * @returns {Promise<void>}
+ */
+async function downloadImmobiliareFixtures(url) {
+  const { resolveSearch, readPage, readDetail } = await import('../../lib/services/immobiliare/mobile-api.js');
+  const resolved = await resolveSearch(url);
+  if (resolved?.type !== 'search' || !resolved.params) throw new Error('Immobiliare.it did not resolve a search.');
+  const page = await readPage(resolved.params, 0);
+  if (!Array.isArray(page?.list) || page.list.length === 0)
+    throw new Error('Immobiliare.it returned no fixture adverts.');
+  const scrub = (advert) => {
+    const copy = structuredClone(advert);
+    for (const key of [
+      'contacts',
+      'author',
+      'analytics',
+      'referencePerson',
+      'tracking',
+      'mortgage',
+      'externalReferences',
+      'aiSettings',
+    ])
+      delete copy[key];
+    if (copy.description) delete copy.description.translationToken;
+    return copy;
+  };
+  const list = page.list
+    .filter((advert) => advert.rty === 'ad')
+    .slice(0, 3)
+    .map(scrub);
+  if (list.length === 0) throw new Error('Immobiliare.it returned no individual adverts.');
+  const detail = scrub(await readDetail(String(list[0].id)));
+  await writeFile(path.join(FIXTURES_DIR, 'immobiliare_search.json'), JSON.stringify(resolved, null, 2));
+  await writeFile(
+    path.join(FIXTURES_DIR, 'immobiliare_list.json'),
+    JSON.stringify({ ...page, list, count: list.length, totalActive: list.length }, null, 2),
+  );
+  await writeFile(path.join(FIXTURES_DIR, 'immobiliare_detail.json'), JSON.stringify(detail, null, 2));
+}
+
+/**
+ * Record representative House Immobiliare cards on two pages, a detail and a confirmed empty
+ * search. Retain only parser inputs: no scripts, API keys, nonces, contact forms or author data.
+ * @param {string} value
+ * @returns {Promise<void>}
+ */
+async function downloadHouseImmobiliareFixtures(value) {
+  const { load } = await import('cheerio');
+  const { sleep } = await import('../../lib/utils.js');
+  const read = async (url) => {
+    await sleep(500);
+    const response = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(30_000) });
+    if (!response.ok) throw new Error(`House Immobiliare fixture request: HTTP ${response.status}`);
+    return load(await response.text());
+  };
+  const recordSearch = ($) => {
+    const list = $('.qodef-property-list');
+    if (list.length !== 1) throw new Error('No unique House Immobiliare results container.');
+    const options = JSON.parse(list.attr('data-options'));
+    options.max_pages_num = Math.min(2, Number(options.max_pages_num));
+    list.attr('data-options', JSON.stringify(options));
+    list.find('article.qodef-e').slice(3).remove();
+    list.find('svg,script,style,form,button,.qodef-e-author,.qodef-m-filter,.qodef-m-pagination').remove();
+    const maps = $('[data-addresses]')
+      .toArray()
+      .map((e) => $.html(e))
+      .join('');
+    const inputs = list
+      .find('article.qodef-e,.qodef-m-posts-not-found')
+      .toArray()
+      .map((e) => $.html(e))
+      .join('');
+    const holder = $('<div class="qodef-property-list qodef--with-filter"></div>')
+      .attr('data-options', JSON.stringify(options))
+      .html(inputs);
+    return `<!doctype html><html><body>${maps}${$.html(holder)}</body></html>`;
+  };
+  const root = new URL(value);
+  const first = await read(root);
+  const link = first('.qodef-e-title-link').first().attr('href');
+  if (!link) throw new Error('No House Immobiliare advert for detail fixture.');
+  const page2 = new URL(root);
+  page2.pathname = `${root.pathname}page/2/`;
+  const second = await read(page2);
+  const empty = new URL(root);
+  empty.searchParams.set('property_id', 'fredy-fixture-no-such-reference-999999999');
+  const none = await read(empty);
+  if (!none('.qodef-m-posts-not-found').length) throw new Error('The House Immobiliare empty search was not empty.');
+  const detail = await read(link);
+  const gallery = detail('.qodef-custom-gallery a[href], .qodef-property-item a[href]')
+    .toArray()
+    .filter((e) => /\/wp-content\/uploads\/.*\.(?:jpe?g|png|webp)(?:\?|$)/i.test(detail(e).attr('href')))
+    .map((e) => detail.html(e))
+    .join('');
+  const detailHtml = `<!doctype html><html><head>${detail.html(detail('link[rel="canonical"]'))}${detail.html(detail('meta[property="article:published_time"]'))}</head><body><main class="qodef-property-item">${detail.html(detail('.qodef-m-description-content').first())}<div class="qodef-custom-gallery">${gallery}</div></main></body></html>`;
+  for (const [name, html] of [
+    ['houseimmobiliare.html', recordSearch(first)],
+    ['houseimmobiliare_page2.html', recordSearch(second)],
+    ['houseimmobiliare_empty.html', recordSearch(none)],
+    ['houseimmobiliare_detail.html', detailHtml],
+  ])
+    await writeFile(path.join(FIXTURES_DIR, name), html);
+}
+
+/**
  * Casa.it's map search, cut down to the one script tag the provider reads.
  *
  * The map search answers with a page of its own whose store keeps the results under `searchMap`
@@ -988,6 +1095,12 @@ async function main() {
           await downloadIdealistaFixtures(site, launchBrowser, closeBrowser);
         }
         await downloadIdealistaApiFixtures(runConfig.url);
+        break;
+      case 'houseimmobiliare':
+        await downloadHouseImmobiliareFixtures(runConfig.url);
+        break;
+      case 'immobiliare':
+        await downloadImmobiliareFixtures(runConfig.url);
         break;
       case 'casa':
         await downloadHtmlProvider(name, runConfig, launchBrowser, closeBrowser, puppeteerExtractor);
